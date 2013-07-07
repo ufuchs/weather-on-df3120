@@ -1,0 +1,2 @@
+10 */1 * * * /usr/local/bin/fetchWeather.sh
+@reboot /usr/local/bin/fetchWeather.sh

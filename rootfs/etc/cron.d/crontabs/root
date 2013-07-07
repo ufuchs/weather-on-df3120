@@ -1,0 +1,1 @@
+10 0-23 * * * /usr/local/bin/fetchWeather.sh
