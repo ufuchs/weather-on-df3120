@@ -30,5 +30,6 @@ clean:
 	rm -rf $(OBJECTS) $(TARGET)
 	
 deploy:
+	# this deploys the `sdlweather` binary direct onto the DF3120 per NFS share to test it.
 	cp sdlweather /exports/df3120-rootfs/usr/local/bin
 
