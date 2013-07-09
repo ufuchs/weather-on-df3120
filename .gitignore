@@ -1,0 +1,13 @@
+# OS junk files
+[Tt]humbs.db
+*.DS_Store
+
+*~
+sdlweather/*.o
+sdlweather/.project
+sdlweather/.cproject
+sdlweather/sdlweather
+
+
+
+
