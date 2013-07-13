@@ -28,11 +28,11 @@ int picframe_init() {
 		exit(1);
 	}
 	/* Load a default font */
-	picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 20);
+//	picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 20);
 
 	/* Aight, lets make our first default window */
 	_num_windows = 0;
-	struct LList_t *node = picframe_add_window();
+//	struct LList_t *node = picframe_add_window();
 
 	picframe_gpio_init();
 
@@ -85,7 +85,7 @@ int picframe_gpio_setcfg(int gpio, int dir, int edge) {
 }
 
 /* These are pretty DF3120 specific! */
-int picframe_gpio_init() {
+void picframe_gpio_init() {
 	picframe_gpio_export(1, 162);
 	picframe_gpio_export(1, 163);
 	picframe_gpio_export(1, 164);
@@ -116,7 +116,7 @@ int picframe_gpio_init() {
 	_buttons[2].pval = 1;
 }
 
-int picframe_gpio_cleanup() {
+void picframe_gpio_cleanup() {
 	close(_gpio_fds[0]);
 	close(_gpio_fds[1]);
 	close(_gpio_fds[2]);
@@ -220,11 +220,12 @@ int picframe_get_event(SDL_Event *event) {
 	return rc;
 }
 
-int picframe_update(struct LList_t *window) {
+void picframe_update(struct LList_t *window) {
 	struct LList_t *curr = window->data;
 	Element_t *element = NULL;
 	SDL_Surface *ts;
 	while (curr) {
+
 		if (curr->data) {
 			element = (Element_t *)curr->data;
 			if (!element) {
@@ -328,19 +329,9 @@ int picframe_disp_surface(SDL_Surface *src, SDL_Rect *rect) {
 }
 
 int picframe_add_button(Element_t *b, SDL_Rect *rect, char *path, char *selected) {
-	SDL_Surface *tmp, *tmp2 = NULL;
-	if (picframe_load_image(&tmp, path) == -1) {
-		fprintf(stderr, "Failed to create button %s!\n", path);
-		return -1;
-	}
 
-	if (picframe_load_image(&tmp2, selected) == -1) {
-		fprintf(stderr, "Failed to create button %s\n", selected);
-		return -1;
-	}
-
-	b->surface = tmp;
-	b->surface_selected = tmp2;
+	b->surface = IMG_Load(path);
+	b->surface_selected = IMG_Load(selected);
 	memcpy(&(b->rect), rect, sizeof(SDL_Rect));
 	b->selected = 0;
 	b->dynamic = 0;

@@ -52,8 +52,8 @@ typedef struct {
 
 
 int picframe_init();
-int picframe_gpio_init();
-int picframe_gpio_cleanup();
+void picframe_gpio_init();
+void picframe_gpio_cleanup();
 int picframe_gpio_handle_events();
 struct LList_t *picframe_add_window();
 struct LList_t *picframe_get_window();
@@ -72,7 +72,7 @@ int picframe_add_button(Element_t *b, SDL_Rect *rect, char *path, char *selected
 int picframe_add_button_text(Element_t *b, SDL_Rect *rect, int textsize, char *text);
 int picframe_add_progress_bar(Element_t *b, SDL_Rect *rect, int val);
 int picframe_update_progress_bar(Element_t *b, int val);
-int picframe_update();
+void picframe_update();
 void picframe_cleanup();
 
 #endif

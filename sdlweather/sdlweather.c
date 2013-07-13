@@ -1,5 +1,6 @@
 #include "picframe.h"
 #include <time.h>
+#include  "window.h"
 
 #define START_WINDOW 1
 #define NUM_WINDOWS  4
@@ -20,18 +21,14 @@ Element_t tomorrow_pic;
 Element_t twodays_pic;
 Element_t threedays_pic;
 
-/* Home Automation window */
-#define NUM_APPLIANCES 4
-Element_t appls[NUM_APPLIANCES];
-char *appl_names[NUM_APPLIANCES] = { "Living room", "Bed room", "Kitchen",
-		"Bathroom" };
+Window *t;
 
 /*
  * Global vars
  */
 struct LList_t *curr_window = NULL;
 int curr_window_idx = START_WINDOW, prev_window_idx = START_WINDOW;
-SDL_Event event;
+
 SDL_Color fg = { 0, 0, 0, 0 };
 SDL_Color bg = { 255, 255, 255, 0 };
 int progress = 0;
@@ -42,6 +39,8 @@ int progress = 0;
 int handle_input() {
 	int i = 0;
 	struct LList_t *tmp_window = NULL;
+	SDL_Event event;
+
 
 //	while (picframe_get_event(&event)) {
 	while (SDL_PollEvent(&event)) {
@@ -56,13 +55,16 @@ int handle_input() {
 				curr_window_idx--;
 				if (curr_window_idx < 1)
 					curr_window_idx = 1;
+
 				tmp_window = picframe_get_window(curr_window_idx);
+
 				if (tmp_window)
 					curr_window = tmp_window;
 				else
 					curr_window_idx++;
 
-				printf("Current window: %d\n", curr_window_idx);
+//				printf("Current window: %d\n", curr_window_idx);
+
 			}
 
 			if (event.key.keysym.sym == SDLK_RIGHT) {
@@ -76,25 +78,12 @@ int handle_input() {
 				else
 					curr_window_idx--;
 
-				printf("Current window: %d\n", curr_window_idx);
+//				printf("Current window: %d\n", curr_window_idx);
 			}
 
 			if (event.key.keysym.sym == SDLK_RETURN) {
 				i = picframe_get_lightsensor();
 				printf("Light sensor: %d\n", i);
-			}
-
-			if (event.key.keysym.sym == '1') {
-				appls[0].selected = 1;
-			}
-			if (event.key.keysym.sym == '2') {
-				appls[1].selected = 1;
-			}
-			if (event.key.keysym.sym == '3') {
-				appls[2].selected = 1;
-			}
-			if (event.key.keysym.sym == '4') {
-				appls[3].selected = 1;
 			}
 
 			break;
@@ -106,19 +95,6 @@ int handle_input() {
 
 			if (event.key.keysym.sym == SDLK_RIGHT) {
 				rightArrow.selected = 0;
-			}
-
-			if (event.key.keysym.sym == '1') {
-				appls[0].selected = 0;
-			}
-			if (event.key.keysym.sym == '2') {
-				appls[1].selected = 0;
-			}
-			if (event.key.keysym.sym == '3') {
-				appls[2].selected = 0;
-			}
-			if (event.key.keysym.sym == '4') {
-				appls[3].selected = 0;
 			}
 
 			break;
@@ -167,6 +143,8 @@ void arrow_setup() {
  */
 void app_free() {
 
+	window_free(t);
+
 	SDL_FreeSurface(leftArrow.surface);
 	SDL_FreeSurface(leftArrow.surface_selected);
 
@@ -180,7 +158,6 @@ void app_free() {
 void clock_setup() {
 	struct LList_t *first_window = NULL;
 	first_window = picframe_get_window(1);
-	SDL_Rect tmp;
 
 	picframe_add_element_to_window(first_window, &leftArrow);
 
@@ -294,6 +271,8 @@ void weather_today_setup() {
 //
 void weather_tomorrow_setup() {
 
+	t = windowFactory(_screen, NULL);
+
 	struct LList_t *weather_window = picframe_add_window();
 
 	tomorrow_pic.surface = NULL;
@@ -301,6 +280,10 @@ void weather_tomorrow_setup() {
 	tomorrow_pic.rect.y = 0;
 	tomorrow_pic.selected = 0;
 	tomorrow_pic.dynamic = 0;
+
+	window_add_element(t, &tomorrow_pic);
+	window_add_element(t, &leftArrow);
+	window_add_element(t, &rightArrow);
 
 
 	picframe_add_element_to_window(weather_window, &tomorrow_pic);
@@ -446,7 +429,6 @@ int main() {
 	int ret = 0;
 
 	picframe_init();
-
 
 	arrow_setup();
 //	clock_setup();

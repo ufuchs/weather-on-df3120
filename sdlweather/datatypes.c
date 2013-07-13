@@ -1,5 +1,4 @@
 #include "datatypes.h"
-#include <linux/types.h>
 
 void llist_set_type(struct LList_t *node, int type) {
 	node->type = type;
@@ -38,7 +37,7 @@ struct LList_t *llist_insert_node(struct LList_t **head, struct LList_t *node) {
 }
 
 struct LList_t *llist_add_node(struct LList_t **head, int id, void *data) {
-
+	struct LList_t *ptr = *head;
 	struct LList_t *newnode = NULL;
 
         debug_printf("Adding new node id: %d\n", id);
