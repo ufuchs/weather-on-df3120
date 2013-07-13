@@ -7,7 +7,6 @@ sdlweather/*.o
 sdlweather/.project
 sdlweather/.cproject
 sdlweather/sdlweather
-
-
-
+sdlweather/Debug
+sdlweather/Release
 
