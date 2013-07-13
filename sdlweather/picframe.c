@@ -194,12 +194,6 @@ struct LList_t *picframe_add_window() {
 	return node;
 }
 
-struct LList_t *picframe_get_window(int id) {
-	struct LList_t *node = NULL;
-	node = llist_find_node(_windows, id);
-	return node; 
-}
-
 struct LList_t *picframe_add_element_to_window(struct LList_t *window, Element_t *data) {
 	struct LList_t *node = NULL;
 	if (window == NULL) return NULL;
@@ -389,8 +383,6 @@ int picframe_add_button_text(Element_t *b, SDL_Rect *rect, int textsize, char *t
 }
 
 int picframe_add_progress_bar(Element_t *b, SDL_Rect *rect, int val) {
-        SDL_Color fg = {0,0,0,0};
-        SDL_Color bg = {255,255,255,0};
 
         SDL_Surface *tmp = NULL;
         SDL_Rect nr;

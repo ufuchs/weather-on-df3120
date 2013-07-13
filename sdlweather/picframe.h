@@ -48,6 +48,7 @@ typedef struct {
 	SDL_Rect rect;
 	int selected;
 	int dynamic;
+	char *name;
 } Element_t;
 
 

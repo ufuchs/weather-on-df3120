@@ -35,7 +35,7 @@ typedef struct {
 	Params *params;
 
 	void (*setup)(SDL_Surface *screen, Params *params);
-	int (*event)(SDL_Event *event);
+	int (*wndProc)();
 	void (*free)(Params *params);
 
 } Window;

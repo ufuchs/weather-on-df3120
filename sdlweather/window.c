@@ -20,17 +20,9 @@ void window_free(Window* w) {
 //
 //
 //
-int window_events(Window* w, SDL_Event *event) {
-	return w->event(event);
-}
-
-//
-//
-//
 void window_update(Window* w) {
 
 	struct LList_t *curr = w->params->elements;
-	SDL_Surface *screen = w->params->screen;
 	Element_t *element;
 	SDL_Surface *ts;
 
@@ -39,10 +31,9 @@ void window_update(Window* w) {
 		element = (Element_t *)curr->data;
 
 		ts = element->selected ? element->surface_selected : element->surface;
-
 		assert(ts);
 
-		SDL_BlitSurface(ts, NULL, screen, &element->rect);
+		SDL_BlitSurface(ts, NULL, w->params->screen, &element->rect);
 
 		if (element->dynamic) {
 			SDL_FreeSurface(element->surface);
@@ -50,9 +41,35 @@ void window_update(Window* w) {
 		}
 
 		curr = curr->next;
+
 	}
 
-	SDL_Flip(screen);
+	SDL_Flip(w->params->screen);
+
+}
+
+//
+//
+//
+Element_t * window_get_element_byName(Window *w, char *name) {
+
+	struct LList_t *curr = w->params->elements;
+	Element_t *e;
+
+	while (curr) {
+
+		e = (Element_t *) curr->data;
+
+		if (strcmp(name, e->name) == 0) {
+			break;
+		}
+
+		curr = curr->next;
+
+	}
+
+	return e;
+
 }
 
 //
@@ -70,24 +87,16 @@ struct LList_t * window_add_element(Window *w, Element_t *e) {
 	newNode->data = e;
 
 	if (curr == NULL) {
-
 		newNode->id = 1;
-
 		*x = newNode;
-
 	} else {
-
 		int i = 1;
-
 		while (curr->next != NULL) {
 			curr = curr->next;
 			i += 1;
 		}
-
 		newNode->id = i + 1;
-
 		curr->next = newNode;
-
 	}
 
 	return newNode;
@@ -97,16 +106,13 @@ struct LList_t * window_add_element(Window *w, Element_t *e) {
 //
 //
 //
-Window* windowFactory(SDL_Surface *screen, eventHandler event) {
+Window* windowFactory(SDL_Surface *screen, eventHandler wndProc) {
 
-	Window *w =
-			(Window *) calloc(1, sizeof(Window));
-
-	printf("%lu", sizeof(Window));
+	Window *w = (Window *) calloc(1, sizeof(Window));
 
 	w->params = (Params *) calloc(1, sizeof(Params));
 	w->setup = setup;
-	w->event = event;
+	w->wndProc = wndProc;
 	w->free = free_local;
 	w->setup(screen, w->params);
 

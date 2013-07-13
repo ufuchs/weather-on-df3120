@@ -2,7 +2,7 @@
 #include <time.h>
 #include  "window.h"
 
-#define START_WINDOW 1
+#define START_WINDOW 0
 #define NUM_WINDOWS  4
 
 /* General elements for all windows */
@@ -21,12 +21,13 @@ Element_t tomorrow_pic;
 Element_t twodays_pic;
 Element_t threedays_pic;
 
-Window *t;
+Window *window[NUM_WINDOWS];
+
+char *weatherFileTemplate = "/exports/df3120-rootfs/tmp/weather-%d.png";
 
 /*
  * Global vars
  */
-struct LList_t *curr_window = NULL;
 int curr_window_idx = START_WINDOW, prev_window_idx = START_WINDOW;
 
 SDL_Color fg = { 0, 0, 0, 0 };
@@ -38,9 +39,7 @@ int progress = 0;
  */
 int handle_input() {
 	int i = 0;
-	struct LList_t *tmp_window = NULL;
 	SDL_Event event;
-
 
 //	while (picframe_get_event(&event)) {
 	while (SDL_PollEvent(&event)) {
@@ -53,32 +52,19 @@ int handle_input() {
 			if (event.key.keysym.sym == SDLK_LEFT) {
 				leftArrow.selected = 1;
 				curr_window_idx--;
-				if (curr_window_idx < 1)
-					curr_window_idx = 1;
-
-				tmp_window = picframe_get_window(curr_window_idx);
-
-				if (tmp_window)
-					curr_window = tmp_window;
-				else
-					curr_window_idx++;
-
-//				printf("Current window: %d\n", curr_window_idx);
+				if (curr_window_idx < 0)
+					curr_window_idx = 0;
+				printf("Current window: %d\n", curr_window_idx);
 
 			}
 
 			if (event.key.keysym.sym == SDLK_RIGHT) {
 				rightArrow.selected = 1;
 				curr_window_idx++;
-				if (curr_window_idx > NUM_WINDOWS)
-					curr_window_idx = NUM_WINDOWS;
-				tmp_window = picframe_get_window(curr_window_idx);
-				if (tmp_window)
-					curr_window = tmp_window;
-				else
-					curr_window_idx--;
+				if (curr_window_idx > NUM_WINDOWS - 1)
+					curr_window_idx = NUM_WINDOWS - 1;
 
-//				printf("Current window: %d\n", curr_window_idx);
+				printf("Current window: %d\n", curr_window_idx);
 			}
 
 			if (event.key.keysym.sym == SDLK_RETURN) {
@@ -116,9 +102,11 @@ int handle_input() {
 void arrow_setup() {
 
 	char *leftPath = "/usr/share/data/glyphicons_210_left_arrow.png";
-	char *leftSelected = "/usr/share/data/glyphicons_210_left_arrow_selected.png";
+	char *leftSelected =
+			"/usr/share/data/glyphicons_210_left_arrow_selected.png";
 	char *rightPath = "/usr/share/data/glyphicons_211_right_arrow.png";
-	char *rightSelected = "/usr/share/data/glyphicons_211_right_arrow_selected.png";
+	char *rightSelected =
+			"/usr/share/data/glyphicons_211_right_arrow_selected.png";
 
 	/* Left arrow */
 	leftArrow.surface = IMG_Load(leftPath);
@@ -143,7 +131,8 @@ void arrow_setup() {
  */
 void app_free() {
 
-	window_free(t);
+	window_free(window[0]);
+	window_free(window[1]);
 
 	SDL_FreeSurface(leftArrow.surface);
 	SDL_FreeSurface(leftArrow.surface_selected);
@@ -157,7 +146,6 @@ void app_free() {
  */
 void clock_setup() {
 	struct LList_t *first_window = NULL;
-	first_window = picframe_get_window(1);
 
 	picframe_add_element_to_window(first_window, &leftArrow);
 
@@ -222,9 +210,9 @@ int clock_loop() {
 
 			// FREE_FONT
 			/*
-			debug_printf("Setting time_disp surface to: %p\n",
-					time_disp.surface);
-			*/
+			 debug_printf("Setting time_disp surface to: %p\n",
+			 time_disp.surface);
+			 */
 			prev = now;
 
 			lightlevel = picframe_get_lightsensor();
@@ -235,34 +223,76 @@ int clock_loop() {
 			picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 20);
 			picframe_gen_text(&info_disp.surface, fg, bg, buff);
 			/*
-			debug_printf("Setting info_disp surface to: %p\n",
-					info_disp.surface);
-			*/
+			 debug_printf("Setting info_disp surface to: %p\n",
+			 info_disp.surface);
+			 */
 		}
 
-		picframe_update(curr_window);
+
 		SDL_Delay(1);
 	}
 	return 0;
 }
 
 //
+//
+//
+int wndProc() {
+	int ret;
+
+	while (1) {
+
+		if ((ret = handle_input()) != 0) {
+			break;
+		}
+
+		SDL_Delay(10);
+
+	}
+
+	return ret;
+}
+
+//
+// weather_today_loop
+//
+int weather_loop() {
+
+	char weather[200];
+
+	Element_t *e = window_get_element_byName(window[curr_window_idx], "weather");
+
+	sprintf(weather, weatherFileTemplate, curr_window_idx);
+
+	e->surface = IMG_Load(weather);
+
+	window_update(window[curr_window_idx]);
+
+	SDL_FreeSurface(e->surface);
+
+	return wndProc();
+
+}
+
+
+//
 // weather_today_setup
 //
 void weather_today_setup() {
 
-	struct LList_t *weather_window = picframe_add_window();
+	window[0] = windowFactory(_screen, weather_loop);
 
 	today_pic.surface = NULL;
-    today_pic.rect.x = 0;
-    today_pic.rect.y = 0;
+	today_pic.rect.x = 0;
+	today_pic.rect.y = 0;
 	today_pic.selected = 0;
 	today_pic.dynamic = 0;
+	today_pic.name = "weather";
 
-	picframe_add_element_to_window(weather_window, &today_pic);
-
-	picframe_add_element_to_window(weather_window, &leftArrow);
-	picframe_add_element_to_window(weather_window, &rightArrow);
+	// window manager
+	window_add_element(window[0], &today_pic);
+	window_add_element(window[0], &leftArrow);
+	window_add_element(window[0], &rightArrow);
 
 }
 
@@ -271,26 +301,19 @@ void weather_today_setup() {
 //
 void weather_tomorrow_setup() {
 
-	t = windowFactory(_screen, NULL);
-
-	struct LList_t *weather_window = picframe_add_window();
+	window[1] = windowFactory(_screen, weather_loop);
 
 	tomorrow_pic.surface = NULL;
 	tomorrow_pic.rect.x = 0;
 	tomorrow_pic.rect.y = 0;
 	tomorrow_pic.selected = 0;
 	tomorrow_pic.dynamic = 0;
+	tomorrow_pic.name = "weather";
 
-	window_add_element(t, &tomorrow_pic);
-	window_add_element(t, &leftArrow);
-	window_add_element(t, &rightArrow);
-
-
-	picframe_add_element_to_window(weather_window, &tomorrow_pic);
-
-	picframe_add_element_to_window(weather_window, &leftArrow);
-	picframe_add_element_to_window(weather_window, &rightArrow);
-
+	// window manager
+	window_add_element(window[1], &tomorrow_pic);
+	window_add_element(window[1], &leftArrow);
+	window_add_element(window[1], &rightArrow);
 
 }
 
@@ -299,18 +322,19 @@ void weather_tomorrow_setup() {
 //
 void weather_dayAfterTomorrow_setup() {
 
-	struct LList_t *weather_window = picframe_add_window();
+	window[2] = windowFactory(_screen, weather_loop);
 
 	twodays_pic.surface = NULL;
 	twodays_pic.rect.x = 0;
 	twodays_pic.rect.y = 0;
 	twodays_pic.selected = 0;
 	twodays_pic.dynamic = 0;
+	twodays_pic.name = "weather";
 
-	picframe_add_element_to_window(weather_window, &twodays_pic);
-
-	picframe_add_element_to_window(weather_window, &leftArrow);
-	picframe_add_element_to_window(weather_window, &rightArrow);
+	// window manager
+	window_add_element(window[2], &twodays_pic);
+	window_add_element(window[2], &leftArrow);
+	window_add_element(window[2], &rightArrow);
 
 }
 
@@ -319,107 +343,23 @@ void weather_dayAfterTomorrow_setup() {
 //
 void weather_dayAfterTomorrowPlus1_setup() {
 
-	struct LList_t *weather_window = picframe_add_window();
+	window[3] = windowFactory(_screen, weather_loop);
 
 	threedays_pic.surface = NULL;
 	threedays_pic.rect.x = 0;
 	threedays_pic.rect.y = 0;
 	threedays_pic.selected = 0;
 	threedays_pic.dynamic = 0;
+	threedays_pic.name = "weather";
 
-	picframe_add_element_to_window(weather_window, &threedays_pic);
-
-	picframe_add_element_to_window(weather_window, &leftArrow);
-	picframe_add_element_to_window(weather_window, &rightArrow);
+	// window manager
+	window_add_element(window[3], &threedays_pic);
+	window_add_element(window[3], &leftArrow);
+	window_add_element(window[3], &rightArrow);
 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-//
-// weather_today_loop
-//
-int weather_today_loop() {
-	int ret;
-
-	today_pic.surface = IMG_Load("/exports/df3120-rootfs/tmp/weather-0.png");
-
-	picframe_update(curr_window);
-
-	SDL_FreeSurface(today_pic.surface);
-
-	while (1) {
-		ret = handle_input();
-		if (ret) {
-			return ret;
-		}
-		SDL_Delay(10);
-	}
-
-}
-
-//
-// weather_tomorrow_loop
-//
-int weather_tomorrow_loop() {
-	int ret;
-
-	tomorrow_pic.surface = IMG_Load("/exports/df3120-rootfs/tmp/weather-1.png");
-
-	picframe_update(curr_window);
-
-	SDL_FreeSurface(tomorrow_pic.surface);
-
-	while (1) {
-		ret = handle_input();
-		if (ret)
-			return ret;
-		SDL_Delay(10);
-	}
-
-}
-
-//
-// weather_dayAfterTomorrow_loop
-//
-int weather_dayAfterTomorrow_loop() {
-	int ret;
-
-	twodays_pic.surface = IMG_Load("/exports/df3120-rootfs/tmp/weather-2.png");
-
-	picframe_update(curr_window);
-
-	SDL_FreeSurface(twodays_pic.surface);
-
-	while (1) {
-		ret = handle_input();
-		if (ret)
-			return ret;
-		SDL_Delay(10);
-	}
-
-}
-
-//
-// weather_dayAfterTomorrowPlus1_loop
-//
-int weather_dayAfterTomorrowPlus1_loop() {
-	int ret;
-
-	threedays_pic.surface = IMG_Load("/exports/df3120-rootfs/tmp/weather-2.png");
-
-	picframe_update(curr_window);
-
-	SDL_FreeSurface(threedays_pic.surface);
-
-	while (1) {
-		ret = handle_input();
-		if (ret)
-			return ret;
-		SDL_Delay(10);
-	}
-
-}
 
 /*
  * Generic main loop to keep things running...
@@ -438,43 +378,21 @@ int main() {
 	weather_dayAfterTomorrow_setup();
 	weather_dayAfterTomorrowPlus1_setup();
 
-	curr_window = picframe_get_window(START_WINDOW);
-
 	picframe_set_backlight(500);
 
 	while (1) {
 
 		picframe_clear_screen();
 
-		switch (curr_window_idx) {
-		/*
-		case 1:
-			ret = clock_loop();
-			break;
-		*/
-		case 1:
-			ret = weather_today_loop();
-			break;
-		case 2:
-			ret = weather_tomorrow_loop();
-			break;
-		case 3:
-			ret = weather_dayAfterTomorrow_loop();
-			break;
-		case 4:
-			ret = weather_dayAfterTomorrowPlus1_loop();
-			break;
-		default:
-			break;
-		}
+		ret = window[curr_window_idx]->wndProc();
+
 		if (ret == 1)
-			goto cleanup;
+			break;
 
 	}
 
 	// Try a friendly shotdown to prevent memory leaks...
-	cleanup: picframe_cleanup();
-
+	picframe_cleanup();
 	app_free();
 
 	return 0;

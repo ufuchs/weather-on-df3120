@@ -37,7 +37,7 @@ struct LList_t *llist_insert_node(struct LList_t **head, struct LList_t *node) {
 }
 
 struct LList_t *llist_add_node(struct LList_t **head, int id, void *data) {
-	struct LList_t *ptr = *head;
+
 	struct LList_t *newnode = NULL;
 
         debug_printf("Adding new node id: %d\n", id);
@@ -49,24 +49,6 @@ struct LList_t *llist_add_node(struct LList_t **head, int id, void *data) {
 	//llist_print_node(newnode);	
 	llist_insert_node(head, newnode);
 
-/*	do {
-		if (ptr == NULL || ptr->next == NULL) {
-			debug_printf("Adding new node id: %d\n", id);
-			newnode = (struct LList_t *)malloc(sizeof(struct LList_t));
-			newnode->id = id;
-			newnode->data = data;
-			newnode->next = NULL;
-			if (ptr == NULL) {
-				*head = newnode;
-				ptr = *head;
-			} else {
-				ptr->next = newnode;
-				return newnode;
-			}
-		}
-		ptr = ptr->next;		
-	} while (ptr != NULL);
-*/
 	return newnode;
 }
 
@@ -104,25 +86,3 @@ struct LList_t *llist_find_node(struct LList_t *head, int id) {
 	} while (ptr != NULL);
 	return res;
 }
-
-void llist_print_node(struct LList_t *node) {
-	printf("*************\n");
-	if (node == NULL) {
-		printf("NULL node\n");
-		return;
-	}
-	printf("ID: %d (%p)\n", node->id, node);
-	printf("Type: %d\n", node->type);
-	printf("Data: %p\n", node->data);
-	printf("Next: %p\n", node->next);
-}
-
-void llist_all_nodes(struct LList_t *head) {
-	struct LList_t *ptr = head;
-	do {
-		llist_print_node(ptr);
-		if (ptr)
-			ptr = ptr->next;
-	} while (ptr != NULL);
-}
-
