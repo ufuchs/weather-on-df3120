@@ -15,12 +15,6 @@ Element_t time_disp, info_disp;
 
 //char *window_labels[NUM_WINDOWS] = { "Date and Time", "Media Center", "Wther", "Lights", "Security Cam" };
 
-/* Weather window elements */
-Element_t today_pic;
-Element_t tomorrow_pic;
-Element_t twodays_pic;
-Element_t threedays_pic;
-
 Window *window[NUM_WINDOWS];
 
 char *weatherFileTemplate = "/exports/df3120-rootfs/tmp/weather-%d.png";
@@ -133,6 +127,8 @@ void app_free() {
 
 	window_free(window[0]);
 	window_free(window[1]);
+	window_free(window[2]);
+	window_free(window[3]);
 
 	SDL_FreeSurface(leftArrow.surface);
 	SDL_FreeSurface(leftArrow.surface_selected);
@@ -274,88 +270,20 @@ int weather_loop() {
 
 }
 
-
 //
 // weather_today_setup
 //
-void weather_today_setup() {
+void weather_setup(int num) {
 
-	window[0] = windowFactory(_screen, weather_loop);
+	window[num] = windowFactory(_screen, weather_loop);
 
-	today_pic.surface = NULL;
-	today_pic.rect.x = 0;
-	today_pic.rect.y = 0;
-	today_pic.selected = 0;
-	today_pic.dynamic = 0;
-	today_pic.name = "weather";
+	Element_t *pic = (Element_t *) calloc(1, sizeof(Element_t));
+	pic->name = "weather";
 
 	// window manager
-	window_add_element(window[0], &today_pic);
-	window_add_element(window[0], &leftArrow);
-	window_add_element(window[0], &rightArrow);
-
-}
-
-//
-// weather_tomorrow_setup
-//
-void weather_tomorrow_setup() {
-
-	window[1] = windowFactory(_screen, weather_loop);
-
-	tomorrow_pic.surface = NULL;
-	tomorrow_pic.rect.x = 0;
-	tomorrow_pic.rect.y = 0;
-	tomorrow_pic.selected = 0;
-	tomorrow_pic.dynamic = 0;
-	tomorrow_pic.name = "weather";
-
-	// window manager
-	window_add_element(window[1], &tomorrow_pic);
-	window_add_element(window[1], &leftArrow);
-	window_add_element(window[1], &rightArrow);
-
-}
-
-//
-// weather_dayAfterTomorrow_setup
-//
-void weather_dayAfterTomorrow_setup() {
-
-	window[2] = windowFactory(_screen, weather_loop);
-
-	twodays_pic.surface = NULL;
-	twodays_pic.rect.x = 0;
-	twodays_pic.rect.y = 0;
-	twodays_pic.selected = 0;
-	twodays_pic.dynamic = 0;
-	twodays_pic.name = "weather";
-
-	// window manager
-	window_add_element(window[2], &twodays_pic);
-	window_add_element(window[2], &leftArrow);
-	window_add_element(window[2], &rightArrow);
-
-}
-
-//
-// weather_dayAfterTomorrowPlus1_setup
-//
-void weather_dayAfterTomorrowPlus1_setup() {
-
-	window[3] = windowFactory(_screen, weather_loop);
-
-	threedays_pic.surface = NULL;
-	threedays_pic.rect.x = 0;
-	threedays_pic.rect.y = 0;
-	threedays_pic.selected = 0;
-	threedays_pic.dynamic = 0;
-	threedays_pic.name = "weather";
-
-	// window manager
-	window_add_element(window[3], &threedays_pic);
-	window_add_element(window[3], &leftArrow);
-	window_add_element(window[3], &rightArrow);
+	window_add_element(window[num], pic);
+	window_add_element(window[num], &leftArrow);
+	window_add_element(window[num], &rightArrow);
 
 }
 
@@ -373,10 +301,10 @@ int main() {
 	arrow_setup();
 //	clock_setup();
 
-	weather_today_setup();
-	weather_tomorrow_setup();
-	weather_dayAfterTomorrow_setup();
-	weather_dayAfterTomorrowPlus1_setup();
+	weather_setup(0);
+	weather_setup(1);
+	weather_setup(2);
+	weather_setup(3);
 
 	picframe_set_backlight(500);
 
@@ -384,9 +312,7 @@ int main() {
 
 		picframe_clear_screen();
 
-		ret = window[curr_window_idx]->wndProc();
-
-		if (ret == 1)
+		if ((ret = window[curr_window_idx]->wndProc()) == 1)
 			break;
 
 	}
