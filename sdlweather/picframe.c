@@ -1,5 +1,11 @@
 #include "picframe.h"
 
+void OnExit() {
+	TTF_Quit();
+	SDL_VideoQuit();
+	SDL_Quit();
+}
+
 int picframe_init() {
 	_font = NULL;
 	/* SDL Setup */
@@ -8,7 +14,7 @@ int picframe_init() {
 		fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
 	exit(1);
 	}
-	atexit(SDL_Quit);
+	atexit(OnExit);
 	/* Initialize our screen */
 	_screen = SDL_SetVideoMode(WIDTH, HEIGHT, 32,
                                SDL_HWSURFACE );
