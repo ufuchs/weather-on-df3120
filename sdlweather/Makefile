@@ -13,7 +13,7 @@ include minifs-df3120.mk
 ### your DF3120 project starts here ###
 
 TARGET=sdlweather
-OBJECTS=datatypes.o picframe.o $(TARGET).o
+OBJECTS=datatypes.o picframe.o window.o $(TARGET).o
 
 all: clean $(TARGET) deploy
 

@@ -38,7 +38,7 @@ LDFLAGS_BASE := -L$(STAGING)/lib -L$(STAGING_USR)/lib
 #  LDFLAGS_BASE := -static $LDFLAGS_BASE
 #endif
 
-CFLAGS  := -Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb
+CFLAGS  := -Os -march=armv4t -mtune=arm920t -mthumb-interwork -mthumb -std=c99
 CXXFLAGS := $(CFLAGS)
 
 LDFLAGS_RLINK = $(LDFLAGS_BASE) -Wl,-rpath -Wl,/usr/lib -Wl,-rpath-link -Wl,$(STAGING)/lib -Wl,-rpath-link -Wl,$(STAGING_USR)/lib
