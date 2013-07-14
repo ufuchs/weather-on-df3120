@@ -1,13 +1,14 @@
 #include "picframe.h"
 #include <time.h>
 #include  "window.h"
+#include <assert.h>
 
 #define START_WINDOW 0
 #define NUM_WINDOWS  4
 
 /* General elements for all windows */
-Element_t leftArrow;
-Element_t rightArrow;
+Element_t * leftArrow;
+Element_t * rightArrow;
 Element_t window_label;
 
 /* Clock window elements */
@@ -44,7 +45,7 @@ int handle_input() {
 			break;
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_LEFT) {
-				leftArrow.selected = 1;
+				leftArrow->selected = 1;
 				curr_window_idx--;
 				if (curr_window_idx < 0)
 					curr_window_idx = 0;
@@ -53,7 +54,7 @@ int handle_input() {
 			}
 
 			if (event.key.keysym.sym == SDLK_RIGHT) {
-				rightArrow.selected = 1;
+				rightArrow->selected = 1;
 				curr_window_idx++;
 				if (curr_window_idx > NUM_WINDOWS - 1)
 					curr_window_idx = NUM_WINDOWS - 1;
@@ -70,11 +71,11 @@ int handle_input() {
 
 		case SDL_KEYUP:
 			if (event.key.keysym.sym == SDLK_LEFT) {
-				leftArrow.selected = 0;
+				leftArrow->selected = 0;
 			}
 
 			if (event.key.keysym.sym == SDLK_RIGHT) {
-				rightArrow.selected = 0;
+				rightArrow->selected = 0;
 			}
 
 			break;
@@ -93,30 +94,22 @@ int handle_input() {
 /*
  *
  */
-void arrow_setup() {
+Element_t * app_create_arrow(char *path, char *pathSelected, int x, int y) {
 
-	char *leftPath = "/usr/share/data/glyphicons_210_left_arrow.png";
-	char *leftSelected =
-			"/usr/share/data/glyphicons_210_left_arrow_selected.png";
-	char *rightPath = "/usr/share/data/glyphicons_211_right_arrow.png";
-	char *rightSelected =
-			"/usr/share/data/glyphicons_211_right_arrow_selected.png";
+	Element_t *arrow = (Element_t *) calloc(1, sizeof(Element_t));
 
-	/* Left arrow */
-	leftArrow.surface = IMG_Load(leftPath);
-	leftArrow.surface_selected = IMG_Load(leftSelected);
-	leftArrow.rect.x = 10;
-	leftArrow.rect.y = 5;
-	leftArrow.selected = 0;
-	leftArrow.dynamic = 0;
+	arrow->surface = IMG_Load(path);
+	assert(arrow->surface);
 
-	/* Right arrow */
-	rightArrow.surface = IMG_Load(rightPath);
-	rightArrow.surface_selected = IMG_Load(rightSelected);
-	rightArrow.rect.x = 320 - 30;
-	rightArrow.rect.y = 5;
-	rightArrow.selected = 0;
-	rightArrow.dynamic = 0;
+	arrow->surface_selected = IMG_Load(pathSelected);
+	assert(arrow->surface_selected);
+
+	arrow->rect.x = x;
+	arrow->rect.y = y;
+	arrow->selected = 0;
+	arrow->dynamic = 0;
+
+	return arrow;
 
 }
 
@@ -125,16 +118,17 @@ void arrow_setup() {
  */
 void app_free() {
 
-	window_free(window[0]);
-	window_free(window[1]);
-	window_free(window[2]);
-	window_free(window[3]);
+	picframe_cleanup();
 
-	SDL_FreeSurface(leftArrow.surface);
-	SDL_FreeSurface(leftArrow.surface_selected);
+	for (int i = 0; i < 4; i++) {
+		window_free(window[i]);
+	}
 
-	SDL_FreeSurface(rightArrow.surface);
-	SDL_FreeSurface(rightArrow.surface_selected);
+	SDL_FreeSurface(leftArrow->surface);
+	SDL_FreeSurface(leftArrow->surface_selected);
+
+	SDL_FreeSurface(rightArrow->surface);
+	SDL_FreeSurface(rightArrow->surface_selected);
 }
 
 /*
@@ -143,9 +137,9 @@ void app_free() {
 void clock_setup() {
 	struct LList_t *first_window = NULL;
 
-	picframe_add_element_to_window(first_window, &leftArrow);
+	picframe_add_element_to_window(first_window, leftArrow);
 
-	picframe_add_element_to_window(first_window, &rightArrow);
+	picframe_add_element_to_window(first_window, rightArrow);
 
 	/////// Arrows are HERE //////
 
@@ -209,7 +203,7 @@ int clock_loop() {
 			 debug_printf("Setting time_disp surface to: %p\n",
 			 time_disp.surface);
 			 */
-			prev = now;
+			prev = now + 100;
 
 			lightlevel = picframe_get_lightsensor();
 			brightness = picframe_get_backlight();
@@ -233,7 +227,7 @@ int clock_loop() {
 //
 //
 //
-int wndProc() {
+int app_loop() {
 	int ret;
 
 	while (1) {
@@ -256,7 +250,9 @@ int weather_loop() {
 
 	char weather[200];
 
-	Element_t *e = window_get_element_byName(window[curr_window_idx], "weather");
+	Window *w = window[curr_window_idx];
+
+	Element_t *e = window_get_element_byName(w, "weather");
 
 	sprintf(weather, weatherFileTemplate, curr_window_idx);
 
@@ -266,7 +262,8 @@ int weather_loop() {
 
 	SDL_FreeSurface(e->surface);
 
-	return wndProc();
+	// calling `app_loop`
+	return app_loop();
 
 }
 
@@ -282,8 +279,33 @@ void weather_setup(int num) {
 
 	// window manager
 	window_add_element(window[num], pic);
-	window_add_element(window[num], &leftArrow);
-	window_add_element(window[num], &rightArrow);
+	window_add_element(window[num], leftArrow);
+	window_add_element(window[num], rightArrow);
+
+}
+
+//
+//
+//
+void app_create() {
+
+	char *leftPath = "/usr/share/data/glyphicons_210_left_arrow.png";
+	char *leftSelected =
+			"/usr/share/data/glyphicons_210_left_arrow_selected.png";
+	char *rightPath = "/usr/share/data/glyphicons_211_right_arrow.png";
+	char *rightSelected =
+			"/usr/share/data/glyphicons_211_right_arrow_selected.png";
+
+	picframe_init();
+
+	leftArrow = app_create_arrow(leftPath, leftSelected, 10, 5);
+	rightArrow = app_create_arrow(rightPath, rightSelected, 320 - 30, 5);
+
+	//	clock_setup();
+
+	for (int i = 0; i < 4; i++) {
+		weather_setup(i);
+	}
 
 }
 
@@ -294,17 +316,10 @@ void weather_setup(int num) {
  */
 
 int main() {
+
 	int ret = 0;
 
-	picframe_init();
-
-	arrow_setup();
-//	clock_setup();
-
-	weather_setup(0);
-	weather_setup(1);
-	weather_setup(2);
-	weather_setup(3);
+	app_create();
 
 	picframe_set_backlight(500);
 
@@ -317,8 +332,6 @@ int main() {
 
 	}
 
-	// Try a friendly shotdown to prevent memory leaks...
-	picframe_cleanup();
 	app_free();
 
 	return 0;

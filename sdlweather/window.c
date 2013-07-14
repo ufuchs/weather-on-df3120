@@ -36,8 +36,12 @@ void window_update(Window* w) {
 		SDL_BlitSurface(ts, NULL, w->params->screen, &element->rect);
 
 		if (element->dynamic) {
-			SDL_FreeSurface(element->surface);
-			SDL_FreeSurface(element->surface_selected);
+			if (element->surface) {
+				SDL_FreeSurface(element->surface);
+			}
+			if (element->surface_selected) {
+				SDL_FreeSurface(element->surface_selected);
+			}
 		}
 
 		curr = curr->next;
@@ -86,12 +90,12 @@ struct LList_t * window_add_element(Window *w, Element_t *e) {
 
 	newNode->data = e;
 
-	if (curr == NULL) {
+	if (!curr) {
 		newNode->id = 1;
 		*x = newNode;
 	} else {
 		int i = 1;
-		while (curr->next != NULL) {
+		while (curr->next) {
 			curr = curr->next;
 			i += 1;
 		}

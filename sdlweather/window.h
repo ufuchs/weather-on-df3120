@@ -14,6 +14,7 @@
 
 #include "datatypes.h"
 #include "picframe.h"
+#include <assert.h>
 
 //
 //
@@ -58,21 +59,6 @@ static inline void free_local(Params *params) {
 
 		struct LList_t *prev = curr;
 
-		Element_t *e = (Element_t *) curr->data;
-
-		if (e != NULL) {
-
-			if (e->surface != NULL) {
-				SDL_FreeSurface(e->surface);
-			}
-
-			if (e->surface_selected != NULL) {
-				SDL_FreeSurface(e->surface_selected);
-			}
-
-			free(e);
-		};
-
 		curr = curr->next;
 
 		free(prev);
@@ -85,5 +71,6 @@ Window* windowFactory(SDL_Surface *, eventHandler event);
 void window_free(Window *);
 void window_update(Window* w);
 struct LList_t * window_add_element(Window *w, Element_t *e);
+Element_t * window_get_element_byName(Window *w, char *name);
 
 #endif /* WINDOW_H_ */
