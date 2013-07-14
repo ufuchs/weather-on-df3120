@@ -254,6 +254,7 @@ int weather_loop() {
 
 	Element_t *e = window_get_element_byName(w, "weather");
 
+	/* format weather file name */
 	sprintf(weather, weatherFileTemplate, curr_window_idx);
 
 	e->surface = IMG_Load(weather);

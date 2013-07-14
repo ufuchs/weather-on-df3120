@@ -14,11 +14,12 @@
 
 #include "datatypes.h"
 #include "picframe.h"
-#include <assert.h>
 
-//
-//
-//
+/*
+ * struct Params - holds the params for a single `Window`
+ * @elements: linked list of 'Element_t'
+ * @screen: application screen
+ */
 typedef struct {
 
 	struct LList_t *elements;
@@ -26,47 +27,70 @@ typedef struct {
 
 } Params;
 
+/* function pointer to an event handler */
 typedef  int (*eventHandler)(SDL_Event *event);
 
 //
-//
+// This is the link between the windows param and and his functions
 //
 typedef struct {
 
 	Params *params;
 
+	/* non public window functions */
 	void (*setup)(SDL_Surface *screen, Params *params);
 	int (*wndProc)();
-	void (*free)(Params *params);
+	void (*release)(Params *params);
 
 } Window;
 
-//
-//
-//
+/*
+ * Populate the `Window`s params
+ * @screen: application screen
+ * @params: holds the params for a single `Window`
+ * @api: non public
+ */
 static inline void setup(SDL_Surface *screen, Params *params) {
 	params->screen = screen;
 };
 
-//
-//
-//
-static inline void free_local(Params *params) {
+/*
+ * Frees the `Window`params
+ * @params: holds the params for a single `Window`
+ * @api: non public
+ */
+static inline void release(Params *params) {
 
 	struct LList_t *curr = params->elements;
 
+	/* free the linked list of 'Element_t' */
 	while (curr) {
 
 		struct LList_t *prev = curr;
-
 		curr = curr->next;
-
 		free(prev);
 
 	}
 
+	free(params);
+
 };
 
+/*
+ * @api: non public
+ */
+static inline void initialize(Window *w, eventHandler wndProc) {
+
+	w->params = (Params *) calloc(1, sizeof(Params));
+
+	/* populate the function pointers */
+	w->setup = setup;
+	w->wndProc = wndProc;
+	w->release = release;
+
+}
+
+/* public functions */
 Window* windowFactory(SDL_Surface *, eventHandler event);
 void window_free(Window *);
 void window_update(Window* w);

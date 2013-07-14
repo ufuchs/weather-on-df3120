@@ -11,9 +11,24 @@
 //
 //
 //
+Window* windowFactory(SDL_Surface *screen, eventHandler wndProc) {
+
+	Window *w = (Window *) calloc(1, sizeof(Window));
+
+	initialize(w, wndProc);
+
+	/* invoke the `setup` function */
+	w->setup(screen, w->params);
+
+	return w;
+
+};
+
+//
+//
+//
 void window_free(Window* w) {
-	w->free(w->params);
-	free(w->params);
+	w->release(w->params);
 	free(w);
 }
 
@@ -55,30 +70,6 @@ void window_update(Window* w) {
 //
 //
 //
-Element_t * window_get_element_byName(Window *w, char *name) {
-
-	struct LList_t *curr = w->params->elements;
-	Element_t *e;
-
-	while (curr) {
-
-		e = (Element_t *) curr->data;
-
-		if (strcmp(name, e->name) == 0) {
-			break;
-		}
-
-		curr = curr->next;
-
-	}
-
-	return e;
-
-}
-
-//
-//
-//
 struct LList_t * window_add_element(Window *w, Element_t *e) {
 
 	struct LList_t *newNode = (struct LList_t *) calloc(1, sizeof(struct LList_t));
@@ -110,16 +101,25 @@ struct LList_t * window_add_element(Window *w, Element_t *e) {
 //
 //
 //
-Window* windowFactory(SDL_Surface *screen, eventHandler wndProc) {
+Element_t * window_get_element_byName(Window *w, char *name) {
 
-	Window *w = (Window *) calloc(1, sizeof(Window));
+	struct LList_t *curr = w->params->elements;
+	Element_t *e;
 
-	w->params = (Params *) calloc(1, sizeof(Params));
-	w->setup = setup;
-	w->wndProc = wndProc;
-	w->free = free_local;
-	w->setup(screen, w->params);
+	while (curr) {
 
-	return w;
+		e = (Element_t *) curr->data;
 
-};
+		if (strcmp(name, e->name) == 0) {
+			break;
+		}
+
+		curr = curr->next;
+
+	}
+
+	return e;
+
+}
+
+
