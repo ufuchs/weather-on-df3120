@@ -1,0 +1,31 @@
+Fetching the weather data
+--------------------------
+
+[files]
+
+/etc/profile
+/etc/profile.d/weather.sh
+/usr/local/bin/fetchWeather.sh
+
+Running `crond`
+-------------------
+
+Enable `crond` and `crontab` in the busybox configuration.
+
+See: 'http://www.acmesystems.it/58' for your orientation. At paragraph 'Configure Busybox'.
+
+     And please don't choose this 'dc'. 
+     It's an arbitrary precision calculator!
+
+[files]
+
+/etc/cron.d/crontabs/root
+
+Be aware! 
+  1.Always edit your crontab with `crontab -e -c /etc/cron.d/crontabs/`.
+    Don't use any other editor!
+  2.Invoke `crond` per `crond -c /etc/cron.d/crontabs/`.
+
+
+
+
