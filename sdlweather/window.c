@@ -110,11 +110,14 @@ Element_t * window_get_element_byName(Window *w, char *name) {
 
 		e = (Element_t *) curr->data;
 
+		curr = curr->next;
+
+		if (!e->name)
+			continue;
+
 		if (strcmp(name, e->name) == 0) {
 			break;
 		}
-
-		curr = curr->next;
 
 	}
 
