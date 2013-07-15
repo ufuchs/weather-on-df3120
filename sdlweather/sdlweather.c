@@ -4,17 +4,11 @@
 #include <assert.h>
 
 #define START_WINDOW 0
-#define NUM_WINDOWS  4
+#define NUM_WINDOWS  5
 
 /* General elements for all windows */
 Element_t * leftArrow;
 Element_t * rightArrow;
-Element_t window_label;
-
-/* Clock window elements */
-//Element_t time_disp, info_disp;
-
-//char *window_labels[NUM_WINDOWS] = { "Date and Time", "Media Center", "Weather", "Lights", "Security Cam" };
 
 Window *window[NUM_WINDOWS];
 
@@ -22,7 +16,8 @@ Window *window[NUM_WINDOWS];
 // ! THIS DEPENDS ON YOUR TEST/PRODUCTION ENVIRONMENT !
 //
 //char *weatherFileTemplate = "/exports/df3120-rootfs/tmp/weather-%d.png";
-char *weatherFileTemplate = "/var/tmp/weather-%d.png";
+char *weatherFileTemplate = "/nfs/tmp/weather-%d.png";
+//char *weatherFileTemplate = "/var/tmp/weather-%d.png";
 
 /*
  * Global vars
@@ -31,7 +26,6 @@ int curr_window_idx = START_WINDOW, prev_window_idx = START_WINDOW;
 
 SDL_Color fg = { 0, 0, 0, 0 };
 SDL_Color bg = { 255, 255, 255, 0 };
-int progress = 0;
 
 /*
  * Generic Input handling
@@ -154,16 +148,17 @@ int clock_loop() {
 //	window_label.rect.x = (WIDTH / 2) - (window_label.surface->clip_rect.w / 2);
 
 	while (1) {
-		ret = handle_input();
-		if (ret)
+
+		if ((ret = handle_input()))
 			return ret;
 
 		now = time(0);
+
 		if (now > prev) {
 
 			tm = localtime(&now);
 
-			prev = now + 100;
+			prev = now;
 
 			sprintf(buff, "%02d:%02d:%02d", tm->tm_hour, tm->tm_min,
 					tm->tm_sec);
@@ -184,10 +179,8 @@ int clock_loop() {
 			Element_t *info_disp = window_get_element_byName(w, "info");
 			info_disp->surface = TTF_RenderText_Shaded(_font, buff, fg, bg);
 
-			/*
-			 debug_printf("Setting info_disp surface to: %p\n",
-			 info_disp.surface);
-			 */
+			window_update(window[curr_window_idx]);
+
 		}
 
 
@@ -234,7 +227,6 @@ void clock_setup() {
 	window_add_element(window[num], info_disp);
 
 }
-
 
 //
 //
@@ -314,11 +306,11 @@ void app_create() {
 	leftArrow = app_create_arrow(leftPath, leftSelected, 10, 5);
 	rightArrow = app_create_arrow(rightPath, rightSelected, 320 - 30, 5);
 
-	//	clock_setup();
-
 	for (int i = 0; i < 4; i++) {
 		weather_setup(i);
 	}
+
+	clock_setup();
 
 }
 
