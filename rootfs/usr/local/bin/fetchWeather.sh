@@ -9,6 +9,13 @@
 # [ It's the life in your years.        - Abraham Lincoln - ]
 #
 
+#
+# Your service url
+#
+WEATHER_SERVER="sleepy-fox-1911.herokuapp.com/weather/df3120"
+WEATHER_OBSERVER_LOCATION="1"
+
+
 TMP_DIR="/tmp"
 WEATHER_FILE_DIR="$TMP_DIR/weather"
 WEATHER_FILE_NAME_BASE="weather"
@@ -20,8 +27,6 @@ WEATHER_FILE_NAME_BASE="weather"
 fetchSingleWeatherfile () {
 
     local forecastDay="$1"
-
-    local url="$URL/?period="$period
 
     local weatherFilename="$TMP_DIR/$WEATHER_FILE_NAME_BASE"-$forecastDay.png
 

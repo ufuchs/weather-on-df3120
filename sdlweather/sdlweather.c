@@ -157,14 +157,11 @@ int clock_loop() {
 		if (now > prev) {
 
 			tm = localtime(&now);
-
 			prev = now;
 
 			sprintf(buff, "%02d:%02d:%02d", tm->tm_hour, tm->tm_min,
 					tm->tm_sec);
-
 			picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 80);
-
 			Element_t *time_disp = window_get_element_byName(w, "time");
 			time_disp->surface = TTF_RenderText_Shaded(_font, buff, fg, bg);
 
@@ -173,9 +170,7 @@ int clock_loop() {
 
 			sprintf(buff, "Light level: %d\tBrightness: %d", lightlevel,
 					brightness);
-
 			picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 20);
-
 			Element_t *info_disp = window_get_element_byName(w, "info");
 			info_disp->surface = TTF_RenderText_Shaded(_font, buff, fg, bg);
 
@@ -183,13 +178,10 @@ int clock_loop() {
 
 		}
 
-
 		SDL_Delay(1);
 	}
 	return 0;
 }
-
-
 
 /*
  * Setup routine for the clock window
@@ -206,8 +198,7 @@ void clock_setup() {
 	/* Dynamic watch label */
 	Element_t *time_disp = (Element_t *) calloc(1, sizeof(Element_t));
 	time_disp->name = "time";
-
-	time_disp->surface = NULL; //sometext;
+	time_disp->surface = NULL;
 	time_disp->rect.x = 5;
 	time_disp->rect.y = 50;
 	time_disp->selected = 0;
@@ -217,8 +208,6 @@ void clock_setup() {
 	/* Dynamic watch label */
 	Element_t *info_disp = (Element_t *) calloc(1, sizeof(Element_t));
 	info_disp->name = "info";
-
-	/* Dynamic info label */
 	info_disp->surface = NULL;
 	info_disp->rect.x = 10;
 	info_disp->rect.y = 200;
