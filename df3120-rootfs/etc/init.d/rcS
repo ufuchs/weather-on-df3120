@@ -71,7 +71,7 @@ route add default gw 172.16.61.1 usb0
 
 networkAvailable=`isNetworkAvailable`
 
-if ( networkAvailable ); then
+if ( $networkAvailable ); then
     echo "* Starting network services -->"
     startNetworkServices
 fi
