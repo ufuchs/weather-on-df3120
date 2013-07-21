@@ -7,27 +7,14 @@ VERSION=0.0.1
 
 BT_ADDRESS="84:59:04:04:02:05"
 
+NFS_SERVER="192.168.178.10"
+
+NFS_EXPORT="/exports/df3120-rootfs"
+
 hostname $HOSTNAME
 
-#   ---------------------------------------------
-#   prints execution status.
-#
-#   @param {$1} : Execution status
-#   @param {$2} : Optional
-#          Continue (0) or Abort (1) on error
-#   ---------------------------------------------
-status () {
-
-    [ $1 -eq 0 ] && {
-            echo    "[SUCCESS]"
-        } || {
-            echo    "[FAILED]"
-           [ ${2:0} -eq 1 ] && {
-               echo "... System init aborted."
-               exit 1
-           }
-        }
-}
+_FUNCTIONS=/etc/init.d/functions.sh
+[ -f ${_FUNCTIONS} ] && . ${_FUNCTIONS}
 
 #   ---------------------------------------------
 #   get verbose
@@ -69,37 +56,39 @@ echo -n "* Starting klogd"
 status $? 0
 
 #   ---------------------------------------------
-#   start networking
+#
 #   ---------------------------------------------
 echo "* Network usb0 172.16.61.2/24"
 ifconfig lo 127.0.0.1 up
 
+# see: http://www.tty1.net/blog/2010-04-21-ifconfig-ip-comparison_en.html
 ifconfig usb0 172.16.61.2 netmask 255.255.255.0 up
 route add default gw 172.16.61.1 usb0
 
-#echo "* mount /nfs"
-#mount -t nfs -o nolock 192.168.178.10:/exports/df3120-rootfs /nfs
+#   ---------------------------------------------
+#   test of usb networking
+#   ---------------------------------------------
 
-#ntpd -q -p 0.europe.pool.ntp.org
-#hwclock -w
-#export TZ=$(cat "/etc/TZ")
+networkAvailable=`isNetworkAvailable`
 
-echo "* Starting telnetd..."
-telnetd -l /bin/sh
+if ( networkAvailable ); then
+    echo "* Starting network services -->"
+    startNetworkServices
+fi
 
-bdaddr $BT_ADDRESS
+
 
 echo "* Starting Bluetooth"
 hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 00:00:00:00:00 >/dev/null 2>&1
+
+hciconfig hci0 up
+
+#`echo $(hcitool dev) | cut -d' ' -f3`
+#bdaddr $BT_ADDRESS
+#hciconfig hci0 reset
 hciconfig hci0 up
 hciconfig hci0 class 0x020100
-hciconfig hci0 name df3120
-
-
-crond -c /etc/cron.d/crontabs
-
-#echo "* fetching weather"
-#/usr/local/bin/fetchWeather.sh
+hciconfig hci0 name $HOSTNAME
 
 #echo "* Starting PAN connection"
 #pand -c 00:11:F6:06:8B:AD
