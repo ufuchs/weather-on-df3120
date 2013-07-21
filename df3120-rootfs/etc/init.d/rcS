@@ -5,6 +5,8 @@
 HOSTNAME=df3120
 VERSION=0.0.1
 
+BT_ADDRESS="84:59:04:04:02:05"
+
 hostname $HOSTNAME
 
 #   ---------------------------------------------
@@ -49,22 +51,31 @@ mkdir -p /dev/pts /dev/shm
 mount -a
 status $? 1
 
-echo -n "* Creating devices..."
+echo -n "* Creating devices"
 /sbin/mdev -s
 status $? 0
 
-//echo 2 >/proc/cpu/alignment
+#echo 2 >/proc/cpu/alignment
 
-# echo "* Starting system loggers..."
-syslogd -C16
-klogd
+#   ---------------------------------------------
+#   start loggers
+#   ---------------------------------------------
+echo -n "* Starting syslogd"
+/sbin/syslogd -C16
+status $? 0
 
+echo -n "* Starting klogd"
+/sbin/klogd
+status $? 0
 
-echo "* Network usb0 172.16.61.1/24"
+#   ---------------------------------------------
+#   start networking
+#   ---------------------------------------------
+echo "* Network usb0 172.16.61.2/24"
 ifconfig lo 127.0.0.1 up
 
-#ifconfig usb0 172.16.61.1 netmask 255.255.255.0 up
-#route add default gw 172.16.61.2 usb0
+ifconfig usb0 172.16.61.2 netmask 255.255.255.0 up
+route add default gw 172.16.61.1 usb0
 
 #echo "* mount /nfs"
 #mount -t nfs -o nolock 192.168.178.10:/exports/df3120-rootfs /nfs
@@ -75,6 +86,8 @@ ifconfig lo 127.0.0.1 up
 
 echo "* Starting telnetd..."
 telnetd -l /bin/sh
+
+bdaddr $BT_ADDRESS
 
 echo "* Starting Bluetooth"
 hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 00:00:00:00:00 >/dev/null 2>&1
