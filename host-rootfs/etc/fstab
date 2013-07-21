@@ -6,10 +6,13 @@
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
 
-# This allows the DF3120 to mount the 'minifs/build-df3120/rootfs' per NFS to 
+# This allows the DF3120 to mount the 'minifs/build-df3120/rootfs' per NFS to
 # simplifiy the testing of applications, e.g. 'sdlweather'
 # Please adjust and add the following line at the end of your /etc/fstab.
 # A NFS server should also run on your maschine...
+
+# adjust the UUID with 'blkid'
+UUID=b90b4e53-49f8-472e-ab11-6050d3351f6f /embedded        ext2  defaults 0 2
 
 # <minifs-rootfs>                           <nfs mount point on your filesystem>
 /embedded/minifs-df3120/build-df3120/rootfs	/exports/df3120-rootfs	none	bind	0	0
