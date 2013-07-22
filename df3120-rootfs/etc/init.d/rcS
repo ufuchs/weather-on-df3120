@@ -11,23 +11,11 @@ NFS_SERVER="192.168.178.10"
 
 NFS_EXPORT="/exports/df3120-rootfs"
 
+. /etc/init.d/functions.sh
+
 hostname $HOSTNAME
 
-_FUNCTIONS=/etc/init.d/functions.sh
-[ -f ${_FUNCTIONS} ] && . ${_FUNCTIONS}
-
-#   ---------------------------------------------
-#   get verbose
-#   ---------------------------------------------
-echo
-echo "    System initialization..."
-echo
-echo "    Hostname       : $HOSTNAME"
-echo "    Filesystem     : v$VERSION"
-echo
-echo "    Kernel release : `uname -s` `uname -r`"
-echo "    Kernel version : `uname -v`"
-echo
+header
 
 #   ---------------------------------------------
 #   MDEV Support
@@ -59,11 +47,19 @@ status $? 0
 #
 #   ---------------------------------------------
 echo "* Network usb0 172.16.61.2/24"
-ifconfig lo 127.0.0.1 up
 
 # see: http://www.tty1.net/blog/2010-04-21-ifconfig-ip-comparison_en.html
-ifconfig usb0 172.16.61.2 netmask 255.255.255.0 up
-route add default gw 172.16.61.1 usb0
+#      http://www.tecmint.com/ip-command-examples/
+
+# loopback device
+#ifconfig lo 127.0.0.1 up
+ip link set lo up
+ip addr add 127.0.0.1 dev lo
+
+# 'usb0' device
+ip link set usb0 up
+ip addr add 172.16.61.2/24 dev usb0
+ip route add default via 172.16.61.1 dev usb0
 
 #   ---------------------------------------------
 #   test of usb networking
@@ -72,23 +68,20 @@ route add default gw 172.16.61.1 usb0
 networkAvailable=`isNetworkAvailable`
 
 if ( $networkAvailable ); then
+
+    mountNFS
+
     echo "* Starting network services -->"
-    startNetworkServices
+
+    startUsbNetworkServices
+
+    return
+
 fi
 
+bluez_init
 
-
-echo "* Starting Bluetooth"
-hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 00:00:00:00:00 >/dev/null 2>&1
-
-hciconfig hci0 up
-
-#`echo $(hcitool dev) | cut -d' ' -f3`
-#bdaddr $BT_ADDRESS
-#hciconfig hci0 reset
-hciconfig hci0 up
-hciconfig hci0 class 0x020100
-hciconfig hci0 name $HOSTNAME
+bluez_connect
 
 #echo "* Starting PAN connection"
 #pand -c 00:11:F6:06:8B:AD
