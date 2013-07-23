@@ -18,14 +18,16 @@ hostname $HOSTNAME
 header
 
 #   ---------------------------------------------
-#   MDEV Support
-#   (Requires sysfs support in the kernel)
+#   mounting file systems
 #   ---------------------------------------------
 echo -n "* Mounting filesystems"
 mkdir -p /dev/pts /dev/shm
 mount -a
 status $? 1
 
+#   ---------------------------------------------
+#   MDEV Support
+#   ---------------------------------------------
 echo -n "* Creating devices"
 /sbin/mdev -s
 status $? 0
@@ -48,18 +50,15 @@ status $? 0
 #   ---------------------------------------------
 echo "* Network usb0 172.16.61.2/24"
 
-# see: http://www.tty1.net/blog/2010-04-21-ifconfig-ip-comparison_en.html
-#      http://www.tecmint.com/ip-command-examples/
-
 # loopback device
-#ifconfig lo 127.0.0.1 up
-ip link set lo up
-ip addr add 127.0.0.1 dev lo
+ifconfig lo 127.0.0.1 up
 
 # 'usb0' device
-ip link set usb0 up
-ip addr add 172.16.61.2/24 dev usb0
-ip route add default via 172.16.61.1 dev usb0
+ifconfig usb0 up
+udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
+
+#ifconfig usb0 172.16.1.2 netmask 255.255.255.0 up
+#route add default gw 172.16.1.1 dev usb0
 
 #   ---------------------------------------------
 #   test of usb networking
@@ -69,13 +68,13 @@ networkAvailable=`isNetworkAvailable`
 
 if ( $networkAvailable ); then
 
-    mountNFS
+#    mountNFS
 
     echo "* Starting network services -->"
 
     startUsbNetworkServices
 
-    return
+    exit 0
 
 fi
 
