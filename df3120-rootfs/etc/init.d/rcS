@@ -51,14 +51,13 @@ status $? 0
 ifconfig lo 127.0.0.1 up
 
 #   ---------------------------------------------
-#
+#   inits the 'usb0' device
 #   ---------------------------------------------
 usb0_init
 
 #   ---------------------------------------------
 #   test of usb networking
 #   ---------------------------------------------
-
 networkAvailable=`isNetworkAvailable`
 
 if ( $networkAvailable ); then
@@ -68,6 +67,8 @@ if ( $networkAvailable ); then
     echo "* Starting network services -->"
 
     startUsbNetworkServices
+
+    start_apps
 
     exit 0
 

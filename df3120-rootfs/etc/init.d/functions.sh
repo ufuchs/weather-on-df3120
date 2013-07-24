@@ -94,9 +94,18 @@ start_crond () {
 }
 
 #   ---------------------------------------------
+#   starts your applications
+#   ---------------------------------------------
+start_apps () {
+
+    fetching_the_first_weather
+
+}
+
+#   ---------------------------------------------
 #   fetches the weather images from server
 #   ---------------------------------------------
-fetching_weather () {
+fetching_the_first_weather () {
     echo "  * fetching weather"
     /usr/local/bin/fetchWeather.sh
 }
@@ -132,26 +141,24 @@ interfaceAddr () {
 #   ---------------------------------------------
 usb0_init () {
 
-    local perDHCP=1
+    local perDHCP=0
 
     echo -n "* Network usb0 "
 
     ifconfig usb0 up
 
     [ $perDHCP -eq 0 ] && {
-
         ifconfig usb0 172.16.1.2 netmask 255.255.255.0
         route add default gw 172.16.1.1 dev usb0
-
     } || {
-
         udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
-
     }
+
+    local res=$?
 
     interfaceAddr "usb0"
 
-    status $? 0
+    status $res 0
 
 }
 
