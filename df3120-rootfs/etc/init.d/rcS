@@ -46,19 +46,14 @@ echo -n "* Starting klogd"
 status $? 0
 
 #   ---------------------------------------------
-#
+#   inits the loopback device
 #   ---------------------------------------------
-echo "* Network usb0 172.16.61.2/24"
-
-# loopback device
 ifconfig lo 127.0.0.1 up
 
-# 'usb0' device
-ifconfig usb0 up
-udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
-
-#ifconfig usb0 172.16.1.2 netmask 255.255.255.0 up
-#route add default gw 172.16.1.1 dev usb0
+#   ---------------------------------------------
+#
+#   ---------------------------------------------
+usb0_init
 
 #   ---------------------------------------------
 #   test of usb networking

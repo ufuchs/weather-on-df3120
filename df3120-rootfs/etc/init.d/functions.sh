@@ -65,41 +65,109 @@ mountNFS () {
 }
 
 #   ---------------------------------------------
+#   sets the clock in the kernel
+#   ---------------------------------------------
+start_ntpd () {
+    echo -n "  * Adjust clock"
+    ntpd -nq -p 0.europe.pool.ntp.org >/dev/null 2>&1
+    status $? 0
+    echo -n "    "
+    date
+}
+
+#   ---------------------------------------------
+#   starts telnetd
+#   ---------------------------------------------
+start_telnetd () {
+    echo -n "  * Starting telnetd"
+    telnetd -l /bin/sh
+    status $? 0
+}
+
+#   ---------------------------------------------
+#   starts crond
+#   ---------------------------------------------
+start_crond () {
+    echo -n "  * Starting crond"
+    crond -c /etc/cron.d/crontabs
+    status $? 0
+}
+
+#   ---------------------------------------------
+#   fetches the weather images from server
+#   ---------------------------------------------
+fetching_weather () {
+    echo "  * fetching weather"
+    /usr/local/bin/fetchWeather.sh
+}
+
+#   ---------------------------------------------
 #   starts the network related services
 #   ---------------------------------------------
 startUsbNetworkServices () {
-
-    echo -n "  * Adjust clock"
-    ntpd -q -N -d -p 0.europe.pool.ntp.org
-    sleep 1
-    status $? 0
-
-    echo -n "  * Starting telnetd..."
-    telnetd -l /bin/sh
-    status $? 0
-
-    crond -c /etc/cron.d/crontabs
-
-    echo "  * fetching weather"
-    /usr/local/bin/fetchWeather.sh
-
+    start_ntpd
+    start_telnetd
+    start_crond
 }
 
 #   ---------------------------------------------
 #   starts the 'bnep' network related services
 #   ---------------------------------------------
 startBluezNetworkServices () {
+    start_ntpd
+    start_crond
+}
 
-    echo -n "  * Adjust clock"
-    ntpd -q -p 0.europe.pool.ntp.org
-    sleep 1
+#   ---------------------------------------------
+#   gets the interface addr
+#
+#   @param {$1} : e.g 'usb0' or 'bnep0'
+#   ---------------------------------------------
+interfaceAddr () {
+    echo -n $(echo `ip addr show $1 | tail -n 1` | cut -d' ' -f2)
+}
+
+#   ---------------------------------------------
+#   inits the 'usb0' device
+#   ---------------------------------------------
+usb0_init () {
+
+    local perDHCP=1
+
+    echo -n "* Network usb0 "
+
+    ifconfig usb0 up
+
+    [ $perDHCP -eq 0 ] && {
+
+        ifconfig usb0 172.16.1.2 netmask 255.255.255.0
+        route add default gw 172.16.1.1 dev usb0
+
+    } || {
+
+        udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
+
+    }
+
+    interfaceAddr "usb0"
+
     status $? 0
 
-    crond -c /etc/cron.d/crontabs
+}
 
-    echo "  * fetching weather"
-    /usr/local/bin/fetchWeather.sh
+#   ---------------------------------------------
+#   inits the 'bnep0' device
+#   ---------------------------------------------
+bnep0_init () {
 
+    echo -n "* Network bnep0 "
+
+    ifconfig bnep0 up
+    udhcpc -i bnep0 -b -T 1 > /dev/null 2>&1
+
+    interfaceAddr "bnep0"
+
+    status $? 0
 }
 
 #   ---------------------------------------------
