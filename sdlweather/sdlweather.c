@@ -3,7 +3,7 @@
 #include  "window.h"
 #include <assert.h>
 
-#define START_WINDOW 0
+#define START_WINDOW 1
 #define NUM_WINDOWS  5
 
 /* General elements for all windows */
@@ -12,17 +12,13 @@ Element_t * rightArrow;
 
 Window *window[NUM_WINDOWS];
 
-//
-// ! THIS DEPENDS ON YOUR TEST/PRODUCTION ENVIRONMENT !
-//
-//char *weatherFileTemplate = "/exports/df3120-rootfs/tmp/weather-%d.png";
-char *weatherFileTemplate = "/nfs/tmp/weather-%d.png";
-//char *weatherFileTemplate = "/var/tmp/weather-%d.png";
+char *weatherFileTemplate = "/tmp/weather-%d.png";
 
 /*
  * Global vars
  */
-int curr_window_idx = START_WINDOW, prev_window_idx = START_WINDOW;
+int curr_window_idx = START_WINDOW;
+int prev_window_idx = START_WINDOW;
 
 SDL_Color fg = { 0, 0, 0, 0 };
 SDL_Color bg = { 255, 255, 255, 0 };
@@ -118,7 +114,7 @@ void app_free() {
 
 	picframe_cleanup();
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < NUM_WINDOWS; i++) {
 		window_free(window[i]);
 	}
 
@@ -136,16 +132,11 @@ void app_free() {
 int clock_loop() {
 	time_t now, prev = 0;
 	struct tm* tm;
-	char buff[50];
-	int ret, lightlevel, brightness;
+	char buff[100];
+	int ret;
+	int clockDeli = 1;
 
 	Window *w = window[curr_window_idx];
-
-//	SDL_FreeSurface(window_label.surface);
-//	picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 30);
-
-//	picframe_gen_text(&window_label.surface, fg, bg, window_labels[0]);
-//	window_label.rect.x = (WIDTH / 2) - (window_label.surface->clip_rect.w / 2);
 
 	while (1) {
 
@@ -159,18 +150,21 @@ int clock_loop() {
 			tm = localtime(&now);
 			prev = now;
 
-			sprintf(buff, "%02d:%02d:%02d", tm->tm_hour, tm->tm_min,
-					tm->tm_sec);
-			picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 80);
+			clockDeli = clockDeli == 1 ? 0 : 1;
+
+			if (clockDeli) {
+				sprintf(buff, "%02d:%02d", tm->tm_hour, tm->tm_min);
+			} else {
+				sprintf(buff, "%02d %02d", tm->tm_hour, tm->tm_min);
+			}
+
+			picframe_load_font("/usr/share/fonts/UbuntuMono-R.ttf", 115);
 			Element_t *time_disp = window_get_element_byName(w, "time");
 			time_disp->surface = TTF_RenderText_Shaded(_font, buff, fg, bg);
 
-			lightlevel = picframe_get_lightsensor();
-			brightness = picframe_get_backlight();
+			strftime(buff, sizeof(buff), "%a, %d %b %Y %Z", tm);
 
-			sprintf(buff, "Light level: %d\tBrightness: %d", lightlevel,
-					brightness);
-			picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 20);
+			picframe_load_font("/usr/share/fonts/Ubuntu-L.ttf", 29);
 			Element_t *info_disp = window_get_element_byName(w, "info");
 			info_disp->surface = TTF_RenderText_Shaded(_font, buff, fg, bg);
 
@@ -188,32 +182,32 @@ int clock_loop() {
  */
 void clock_setup() {
 
-	int num = 4;
+	int num = 0;
 
 	window[num] = windowFactory(_screen, clock_loop);
 
 	window_add_element(window[num], leftArrow);
 	window_add_element(window[num], rightArrow);
 
+	/* Dynamic info label */
+	Element_t *info_disp = (Element_t *) calloc(1, sizeof(Element_t));
+	info_disp->name = "info";
+	info_disp->surface = NULL;
+	info_disp->rect.x = 20;
+	info_disp->rect.y = 50;
+	info_disp->selected = 0;
+	info_disp->dynamic = 1;
+	window_add_element(window[num], info_disp);
+
 	/* Dynamic watch label */
 	Element_t *time_disp = (Element_t *) calloc(1, sizeof(Element_t));
 	time_disp->name = "time";
 	time_disp->surface = NULL;
-	time_disp->rect.x = 5;
-	time_disp->rect.y = 50;
+	time_disp->rect.x = 15;
+	time_disp->rect.y = 100;
 	time_disp->selected = 0;
 	time_disp->dynamic = 1; /* Free up the surface after use, otherwise memory leak! */
 	window_add_element(window[num], time_disp);
-
-	/* Dynamic watch label */
-	Element_t *info_disp = (Element_t *) calloc(1, sizeof(Element_t));
-	info_disp->name = "info";
-	info_disp->surface = NULL;
-	info_disp->rect.x = 10;
-	info_disp->rect.y = 200;
-	info_disp->selected = 0;
-	info_disp->dynamic = 1;
-	window_add_element(window[num], info_disp);
 
 }
 
@@ -248,7 +242,7 @@ int weather_loop() {
 	Element_t *e = window_get_element_byName(w, "weather");
 
 	/* format weather file name */
-	sprintf(weather, weatherFileTemplate, curr_window_idx);
+	sprintf(weather, weatherFileTemplate, curr_window_idx - 1);
 
 	e->surface = IMG_Load(weather);
 
@@ -295,11 +289,11 @@ void app_create() {
 	leftArrow = app_create_arrow(leftPath, leftSelected, 10, 5);
 	rightArrow = app_create_arrow(rightPath, rightSelected, 320 - 30, 5);
 
-	for (int i = 0; i < 4; i++) {
+	clock_setup();
+
+	for (int i = 1; i < 5; i++) {
 		weather_setup(i);
 	}
-
-	clock_setup();
 
 }
 
