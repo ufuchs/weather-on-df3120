@@ -6,7 +6,7 @@
 # this script is intended for building your software at development time 
 # independent of the `minifs` build process at deployment time.
 
-BASE := /embedded/minifs-df3120
+BASE := /home/ufuchs/embedded/minifs-df3120
 
 include minifs-df3120.mk
 
