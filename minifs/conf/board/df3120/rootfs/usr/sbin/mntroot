@@ -1,0 +1,11 @@
+#!/bin/sh
+
+case "$1" in
+
+	*rw*) mount -o remount,rw / ;;
+	*ro*) mount / / -o remount,ro ;;
+
+	*) echo "usage: mntroot rw|ro";;
+
+esac
+

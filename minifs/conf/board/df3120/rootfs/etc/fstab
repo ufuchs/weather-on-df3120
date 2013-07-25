@@ -1,0 +1,10 @@
+# /etc/fstab: static file system information.
+#
+# <file system> <mount pt>      <type> <options>                    <dump>  <pass>
+proc            /proc           proc    defaults                    0  0
+none            /sys            sysfs   defaults                    0  0
+devpts          /dev/pts        devpts  defaults                    0  0
+tmpfs           /var/run        tmpfs   defaults                    0  0
+none            /dev/shm        tmpfs
+tmpfs           /tmp            tmpfs   size=64k,mode=775           0  0
+rootfs          /               ext2    remount,noatime,commit=20
