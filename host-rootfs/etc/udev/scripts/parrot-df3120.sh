@@ -10,10 +10,10 @@ INTERFACE=$1
 
 # interface
 ifconfig $INTERFACE down
-ifconfig $INTERFACE 172.16.1.1 netmask 255.255.255.0 up
+ifconfig $INTERFACE 172.16.1.254 netmask 255.255.255.0 up
 
 # routing
-#route add -host 172.16.1.2 $INTERFACE
+#route add -host 172.16.1.1 $INTERFACE
 
 # firewall
 iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE

@@ -23,6 +23,7 @@ header
 echo -n "* Mounting filesystems"
 mkdir -p /dev/pts /dev/shm
 mount -a
+mount / -o remount,noatime,rw
 status $? 1
 
 #   ---------------------------------------------
@@ -31,8 +32,6 @@ status $? 1
 echo -n "* Creating devices"
 /sbin/mdev -s
 status $? 0
-
-#echo 2 >/proc/cpu/alignment
 
 #   ---------------------------------------------
 #   start loggers
@@ -70,9 +69,13 @@ if ( $networkAvailable ); then
 
     start_apps
 
-    exit 0
+#    exit 0
 
 fi
+
+# kill -SIGTERM $(pidof udhcpc)
+
+# exit 0
 
 bluez_init
 

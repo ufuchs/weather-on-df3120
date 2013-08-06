@@ -117,6 +117,7 @@ startUsbNetworkServices () {
     start_ntpd
     start_telnetd
     start_crond
+#   mountNFS
 }
 
 #   ---------------------------------------------
@@ -148,8 +149,8 @@ usb0_init () {
     ifconfig usb0 up
 
     [ $perDHCP -eq 0 ] && {
-        ifconfig usb0 172.16.1.2 netmask 255.255.255.0
-        route add default gw 172.16.1.1 dev usb0
+        ifconfig usb0 172.16.1.1 netmask 255.255.255.0
+        route add default gw 172.16.1.254 dev usb0
     } || {
         udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
     }
@@ -179,19 +180,39 @@ bnep0_init () {
 
 #   ---------------------------------------------
 #   inits the 'hci0' device
+#   @see : # http://bluetooth-pentest.narod.ru/software/bluetooth_class_of_device-service_generator.html
 #   ---------------------------------------------
 bluez_init () {
 
+# http://www.linuxdevcenter.com/pub/a/linux/2006/09/21/rediscovering-bluetooth.html?page=3
+# http://books.google.de/books?id=onLanBHwFooC&pg=PA198&lpg=PA198&dq=sdptool+add&source=bl&ots=Dp81uFRXgq&sig=Ihm7K9-tAIvkkTmbQRTKUofbGPM&hl=en&sa=X&ei=TyX-UdPFE8bVtAafj4GYBQ&redir_esc=y#v=onepage&q=sdptool%20add&f=false
+# http://books.google.de/books?id=ta58VCBmLOkC&pg=PT260&lpg=PT260&dq=sdptool+add&source=bl&ots=30WQggQOsH&sig=VRhs5czASjKDmooZVmMbCaJ8568&hl=en&sa=X&ei=TyX-UdPFE8bVtAafj4GYBQ&redir_esc=y#v=onepage&q=sdptool%20add&f=false
+
     echo "* Init Bluetooth"
 
-    hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 00:00:00:00:00 >/dev/null 2>&1
+    mkdir -p /usr/var/run/dbus
+    dbus-daemon --system
+
+    ln -s /usr/lib/libdbus-1.so.3.5.2 /usr/lib/libdbus-1.so.3 > /dev/null 2>&1
+
+    hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 03:44:36:4C:80:54 >/dev/null 2>&1
 
     hciconfig hci0 up
-    bdaddr $BT_ADDRESS >/dev/null 2>&1
+    bdaddr $BT_ADDRESS # >/dev/null 2>&1
     hciconfig hci0 reset
-    hciconfig hci0 up
-    hciconfig hci0 class 0x020100
-    hciconfig hci0 name $HOSTNAME
+
+    bluetoothd
+
+    hciconfig hci0 piscan auth
+
+echo $(hcitool dev | tail -n 1 | cut -d' ' -f4)
+
+#    hciconfig hci0 class 0x60610 #0x020100
+#    hciconfig hci0 name $HOSTNAME
+#    hciconfig hci0 piscan
+#    hciconfig hci0 lp rswitch,hold,sniff,park
+#    hciconfig hci0 lm accept, master
+#    hciconfig hci0 noauth noencrypt
 
 }
 
