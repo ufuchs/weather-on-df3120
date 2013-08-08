@@ -116,7 +116,7 @@ fetching_the_first_weather () {
 startUsbNetworkServices () {
     start_ntpd
     start_telnetd
-    start_crond
+#   start_crond
 #   mountNFS
 }
 
@@ -188,7 +188,7 @@ bluez_init () {
 # http://books.google.de/books?id=onLanBHwFooC&pg=PA198&lpg=PA198&dq=sdptool+add&source=bl&ots=Dp81uFRXgq&sig=Ihm7K9-tAIvkkTmbQRTKUofbGPM&hl=en&sa=X&ei=TyX-UdPFE8bVtAafj4GYBQ&redir_esc=y#v=onepage&q=sdptool%20add&f=false
 # http://books.google.de/books?id=ta58VCBmLOkC&pg=PT260&lpg=PT260&dq=sdptool+add&source=bl&ots=30WQggQOsH&sig=VRhs5czASjKDmooZVmMbCaJ8568&hl=en&sa=X&ei=TyX-UdPFE8bVtAafj4GYBQ&redir_esc=y#v=onepage&q=sdptool%20add&f=false
 
-    echo "* Init Bluetooth"
+    echo -n "* Init Bluetooth "
 
     mkdir -p /usr/var/run/dbus
     dbus-daemon --system
@@ -198,14 +198,25 @@ bluez_init () {
     hciattach -s 115200 /dev/ttySAC0 bcm2035 921600 flow 03:44:36:4C:80:54 >/dev/null 2>&1
 
     hciconfig hci0 up
-    bdaddr $BT_ADDRESS # >/dev/null 2>&1
+    bdaddr $BT_ADDRESS >/dev/null 2>&1
     hciconfig hci0 reset
 
     bluetoothd
 
-    hciconfig hci0 piscan auth
+    # keep the order of the following sequences
+    # THE ARE SOME UNIDENTIFIED RACE CONDITIONS YET
 
-echo $(hcitool dev | tail -n 1 | cut -d' ' -f4)
+    echo $(echo `hcitool dev | tail -n 1` | cut -d' ' -f2)
+
+    /bin/sh -c 'agent 1234' > /dev/null &
+
+    sleep 1
+
+    sdptool add PANU
+    sdptool add --channel 1 SP
+    sdptool add --channel 2 SP
+
+    hciconfig hci0 piscan auth
 
 #    hciconfig hci0 class 0x60610 #0x020100
 #    hciconfig hci0 name $HOSTNAME

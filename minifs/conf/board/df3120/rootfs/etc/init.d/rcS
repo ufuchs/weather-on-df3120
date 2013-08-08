@@ -1,8 +1,10 @@
 #!/bin/hush
+# vim: syntax=sh sw=4
+
 #   ---------------------------------------------
 #   Common settings
 #   ---------------------------------------------
-HOSTNAME=df3120
+HOSTNAME=hp6341
 VERSION=0.0.1
 
 BT_ADDRESS="84:59:04:04:02:05"
@@ -36,9 +38,9 @@ status $? 0
 #   ---------------------------------------------
 #   start loggers
 #   ---------------------------------------------
-echo -n "* Starting syslogd"
-/sbin/syslogd -C16
-status $? 0
+#echo -n "* Starting syslogd"
+#/sbin/syslogd -C16
+#status $? 0
 
 echo -n "* Starting klogd"
 /sbin/klogd
@@ -60,8 +62,6 @@ usb0_init
 networkAvailable=`isNetworkAvailable`
 
 if ( $networkAvailable ); then
-
-#    mountNFS
 
     echo "* Starting network services -->"
 
