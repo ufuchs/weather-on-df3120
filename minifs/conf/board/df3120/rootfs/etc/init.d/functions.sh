@@ -99,6 +99,7 @@ start_crond () {
 start_apps () {
 
     fetching_the_first_weather
+    sdlweather &
 
 }
 
@@ -164,21 +165,6 @@ usb0_init () {
 }
 
 #   ---------------------------------------------
-#   inits the 'bnep0' device
-#   ---------------------------------------------
-bnep0_init () {
-
-    echo -n "* Network bnep0 "
-
-    ifconfig bnep0 up
-    udhcpc -i bnep0 -b -T 1 > /dev/null 2>&1
-
-    interfaceAddr "bnep0"
-
-    status $? 0
-}
-
-#   ---------------------------------------------
 #   inits the 'hci0' device
 #   @see : # http://bluetooth-pentest.narod.ru/software/bluetooth_class_of_device-service_generator.html
 #   ---------------------------------------------
@@ -206,24 +192,17 @@ bluez_init () {
     # keep the order of the following sequences
     # THE ARE SOME UNIDENTIFIED RACE CONDITIONS YET
 
-    echo $(echo `hcitool dev | tail -n 1` | cut -d' ' -f2)
+    echo -n $(echo `hcitool dev | tail -n 1` | cut -d' ' -f2)
 
     /bin/sh -c 'agent 1234' > /dev/null &
 
     sleep 1
 
-    sdptool add PANU
-    sdptool add --channel 1 SP
-    sdptool add --channel 2 SP
+    status $res 0
 
-    hciconfig hci0 piscan auth
+    echo '  '$(echo `sdptool add PANU`)
 
-#    hciconfig hci0 class 0x60610 #0x020100
-#    hciconfig hci0 name $HOSTNAME
-#    hciconfig hci0 piscan
-#    hciconfig hci0 lp rswitch,hold,sniff,park
-#    hciconfig hci0 lm accept, master
-#    hciconfig hci0 noauth noencrypt
+    hciconfig hci0 auth
 
 }
 
@@ -231,6 +210,36 @@ bluez_init () {
 #   connects the 'hci0' device
 #   ---------------------------------------------
 bluez_connect () {
+
+    echo -n "* Network bnep0 "
+
+    pand --connect $BT_PARTNER --devup /etc/init.d/bnep0-up.sh
+
+    local result=$?
+
+    trap "echo Break..." SIGHUP SIGINT SIGTERM
+
+    # save cursor's current position
+    echo -n -e "\033[s"
+
+    # waiting for finishing 'bnep0-up.sh' esp. the DHCP client
+    while [ -z "$(pand --list)" ] ; do echo -n '.'; sleep 1; done
+    echo -n '!'
+
+    # waiting for an ip on bnep0
+    while [ -z "$( ifconfig bnep0 | grep 'inet addr' )" ] ; do echo -n '.'; sleep 1; done
+    echo -n '!'
+
+    # waiting for a valid route
+    while [ -z "$( ping -w 1 -c 1 8.8.8.8 | grep 'ttl' )" ] ; do echo -n '.'; sleep 1; done
+    echo -n '!'
+
+    # restore the cursor to the previous position
+    echo -n -e "\033[u"
+
+    interfaceAddr "bnep0"
+
+    status $result 0
 
 }
 
@@ -244,11 +253,3 @@ bluez_scan () {
     echo $REMOTE_DEVICES
 
 }
-
-#   ---------------------------------------------
-#   connects the 'hci0' device
-#   ---------------------------------------------
-bluez_pair () {
-
-}
-

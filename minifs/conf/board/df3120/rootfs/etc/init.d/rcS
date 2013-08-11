@@ -7,7 +7,11 @@
 HOSTNAME=hp6341
 VERSION=0.0.1
 
+# DF3120 Bluetooth MAC
 BT_ADDRESS="84:59:04:04:02:05"
+
+# bdaddr of piconet server
+BT_PARTNER="BC:20:A4:2B:C5:E3"
 
 NFS_SERVER="192.168.178.10"
 
@@ -52,39 +56,30 @@ status $? 0
 ifconfig lo 127.0.0.1 up
 
 #   ---------------------------------------------
-#   inits the 'usb0' device
+#   inits the 'bnep' device and pand service
 #   ---------------------------------------------
-usb0_init
+
+bluez_init
+
+bluez_connect
 
 #   ---------------------------------------------
-#   test of usb networking
+#   test of bnep networking
 #   ---------------------------------------------
+
 networkAvailable=`isNetworkAvailable`
 
 if ( $networkAvailable ); then
 
     echo "* Starting network services -->"
 
-    startUsbNetworkServices
+    startBluezNetworkServices
 
     start_apps
 
-#    exit 0
+    exit 0
 
 fi
-
-# kill -SIGTERM $(pidof udhcpc)
-
-# exit 0
-
-bluez_init
-
-bluez_connect
-
-#echo "* Starting PAN connection"
-#pand -c 00:11:F6:06:8B:AD
-#sleep 1
-#ifconfig bnep0 192.168.1.2
 
 # Disable console blanking
 printf "\e[9;0]" >/dev/tty0
