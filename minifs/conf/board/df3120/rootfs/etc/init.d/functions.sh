@@ -34,15 +34,22 @@ header () {
 #   ---------------------------------------------
 status () {
 
+
+    echo -ne '\033[36G'
+
     [ $1 -eq 0 ] && {
-            echo    "  [ OK ]"
+            echo -ne '\033[0;32m'
+            echo '[OK]'
         } || {
-            echo    "  [ ERR ]"
+            echo -ne '\033[0;31m'
+            echo -ne '\033[36G''[KO]'
+            echo
            [ ${2:0} -eq 1 ] && {
                echo "[ ABORT ]"
                exit 1
            }
         }
+    echo -ne '\033[0;37m'
 }
 
 #   ---------------------------------------------
@@ -89,7 +96,7 @@ start_telnetd () {
 #   ---------------------------------------------
 start_crond () {
     echo -n "  * Starting crond"
-    crond -c /etc/cron.d/crontabs
+    crond -c /etc/cron.d/crontabs >/dev/null 2>&1
     status $? 0
 }
 
@@ -174,7 +181,7 @@ bluez_init () {
 # http://books.google.de/books?id=onLanBHwFooC&pg=PA198&lpg=PA198&dq=sdptool+add&source=bl&ots=Dp81uFRXgq&sig=Ihm7K9-tAIvkkTmbQRTKUofbGPM&hl=en&sa=X&ei=TyX-UdPFE8bVtAafj4GYBQ&redir_esc=y#v=onepage&q=sdptool%20add&f=false
 # http://books.google.de/books?id=ta58VCBmLOkC&pg=PT260&lpg=PT260&dq=sdptool+add&source=bl&ots=30WQggQOsH&sig=VRhs5czASjKDmooZVmMbCaJ8568&hl=en&sa=X&ei=TyX-UdPFE8bVtAafj4GYBQ&redir_esc=y#v=onepage&q=sdptool%20add&f=false
 
-    echo -n "* Init Bluetooth "
+    echo -n "* Init Bluez "
 
     mkdir -p /usr/var/run/dbus
     dbus-daemon --system
@@ -220,7 +227,7 @@ bluez_connect () {
     trap "echo Break..." SIGHUP SIGINT SIGTERM
 
     # save cursor's current position
-    echo -n -e "\033[s"
+    echo -ne "\033[s"
 
     # waiting for finishing 'bnep0-up.sh' esp. the DHCP client
     while [ -z "$(pand --list)" ] ; do echo -n '.'; sleep 1; done
@@ -235,7 +242,9 @@ bluez_connect () {
     echo -n '!'
 
     # restore the cursor to the previous position
-    echo -n -e "\033[u"
+    echo -ne "\033[u"
+    # clear to end of line
+    echo -ne '\033[K'
 
     interfaceAddr "bnep0"
 

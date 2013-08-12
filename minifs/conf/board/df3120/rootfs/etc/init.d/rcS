@@ -21,7 +21,7 @@ NFS_EXPORT="/exports/df3120-rootfs"
 
 hostname $HOSTNAME
 
-header
+# header
 
 #   ---------------------------------------------
 #   mounting file systems
