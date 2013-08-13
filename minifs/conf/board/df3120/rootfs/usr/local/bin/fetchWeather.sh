@@ -13,12 +13,36 @@
 # Your service url
 #
 WEATHER_SERVER="sleepy-fox-1911.herokuapp.com/weather/df3120"
-WEATHER_OBSERVER_LOCATION="1"
+WEATHER_OBSERVER_LOCATION="2"
+
+URL="http://$WEATHER_SERVER/$WEATHER_OBSERVER_LOCATION"
+
+WEATHER_DIR="/tmp"
+WEATHER_FNAME_BASE="weather"
+
+#
+#
+#
+status () {
 
 
-TMP_DIR="/tmp"
-WEATHER_FILE_DIR="$TMP_DIR/weather"
-WEATHER_FILE_NAME_BASE="weather"
+    echo -ne '\033[36G'
+
+    [ $1 -eq 0 ] && {
+            echo -ne '\033[0;32m'
+            echo '[OK]'
+        } || {
+            echo -ne '\033[0;31m'
+            echo -ne '\033[36G''[KO]'
+            echo
+            sleep 10
+           [ ${2:0} -eq 1 ] && {
+               echo "[ ABORT ]"
+               exit 1
+           }
+        }
+    echo -ne '\033[0;37m'
+}
 
 #
 # Fetchs a single weather file for a given `forecast day`
@@ -27,28 +51,50 @@ WEATHER_FILE_NAME_BASE="weather"
 fetchSingleWeatherfile () {
 
     local forecastDay="$1"
-
-    local weatherFilename="$TMP_DIR/$WEATHER_FILE_NAME_BASE"-$forecastDay.png
-
+    local weatherFilename="$WEATHER_DIR/$WEATHER_FNAME_BASE"-$forecastDay.png
     local WGET_ARGS="-O $weatherFilename $URL/?forecastDay=$forecastDay"
 
-    wget $WGET_ARGS # >/dev/null 2>&1
+    wget $WGET_ARGS >/dev/null 2>&1
+
+    echo $?
 
 }
 
 #
 #
 #
-init () {
+fetchWeather () {
 
-    URL="http://$WEATHER_SERVER/$WEATHER_OBSERVER_LOCATION"
+    echo "* Fetching weather"
 
-    mkdir -p "$WEATHER_FILE_DIR" > /dev/null
+    local res=
+
+    local weatherFilename=""
+
+    for i in 0 1 2 3; do
+
+        weatherFilename="$WEATHER_FNAME_BASE"-$i.png
+
+        touch /tmp/wip
+
+        echo -n "  $weatherFilename "
+        echo -ne "\033[s"               # save cursor's current position
+
+        /usr/local/bin/progress.sh &
+
+        res=$(fetchSingleWeatherfile $i)
+
+        rm /tmp/wip
+
+#        sleep 1
+
+        echo -ne "\033[u"       # restore the cursor to the previous position
+        echo -ne '\033[K'       # clear to end of line
+
+        status $res 0
+
+    done
 
 }
 
-init
-
-for i in 0 1 2 3; do
-    fetchSingleWeatherfile $i
-done
+fetchWeather

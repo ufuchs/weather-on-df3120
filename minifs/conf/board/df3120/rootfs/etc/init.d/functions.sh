@@ -44,6 +44,7 @@ status () {
             echo -ne '\033[0;31m'
             echo -ne '\033[36G''[KO]'
             echo
+            sleep 10
            [ ${2:0} -eq 1 ] && {
                echo "[ ABORT ]"
                exit 1
@@ -105,17 +106,10 @@ start_crond () {
 #   ---------------------------------------------
 start_apps () {
 
-    fetching_the_first_weather
+    /usr/local/bin/fetchWeather.sh
+    sleep 10
     sdlweather &
 
-}
-
-#   ---------------------------------------------
-#   fetches the weather images from server
-#   ---------------------------------------------
-fetching_the_first_weather () {
-    echo "  * fetching weather"
-    /usr/local/bin/fetchWeather.sh
 }
 
 #   ---------------------------------------------
