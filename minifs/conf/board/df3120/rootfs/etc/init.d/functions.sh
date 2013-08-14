@@ -42,7 +42,7 @@ status () {
             echo '[OK]'
         } || {
             echo -ne '\033[0;31m'
-            echo -ne '\033[36G''[KO]'
+            echo -ne '\033[36G''[ko]'
             echo
             sleep 10
            [ ${2:0} -eq 1 ] && {
@@ -76,8 +76,21 @@ mountNFS () {
 #   sets the clock in the kernel
 #   ---------------------------------------------
 start_ntpd () {
-    echo -n "  * Adjust clock"
+    echo -n "  * Adjust clock "
+
+    echo -ne "\033[s"               # save cursor's current position
+
+    touch /tmp/wip
+
+    /usr/local/bin/progress.sh &
+
     ntpd -nq -p 0.europe.pool.ntp.org >/dev/null 2>&1
+
+    rm /tmp/wip
+
+    echo -ne "\033[u"       # restore the cursor to the previous position
+    echo -ne '\033[K'       # clear to end of line
+
     status $? 0
     echo -n "    "
     date
@@ -97,7 +110,7 @@ start_telnetd () {
 #   ---------------------------------------------
 start_crond () {
     echo -n "  * Starting crond"
-    crond -c /etc/cron.d/crontabs >/dev/null 2>&1
+    crond -c /etc/cron.d/crontabs > /dev/null 2>&1
     status $? 0
 }
 
@@ -107,7 +120,9 @@ start_crond () {
 start_apps () {
 
     /usr/local/bin/fetchWeather.sh
-    sleep 10
+    echo '* Waiting for 5 seconds...'
+    sleep 5
+
     sdlweather &
 
 }

@@ -42,9 +42,9 @@ status $? 0
 #   ---------------------------------------------
 #   start loggers
 #   ---------------------------------------------
-#echo -n "* Starting syslogd"
-#/sbin/syslogd -C16
-#status $? 0
+echo -n "* Starting syslogd"
+/sbin/syslogd -C16
+status $? 0
 
 echo -n "* Starting klogd"
 /sbin/klogd
