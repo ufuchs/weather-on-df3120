@@ -1,0 +1,85 @@
+#!/bin/hush
+# vim: syntax=sh sw=4
+
+#   ---------------------------------------------
+#   Common settings
+#   ---------------------------------------------
+HOSTNAME=hp6341
+VERSION=0.0.1
+
+# DF3120 Bluetooth MAC
+BT_ADDRESS="84:59:04:04:02:05"
+
+# bdaddr of piconet server
+BT_PARTNER="BC:20:A4:2B:C5:E3"
+
+NFS_SERVER="192.168.178.10"
+
+NFS_EXPORT="/exports/df3120-rootfs"
+
+. /etc/init.d/functions.sh
+
+hostname $HOSTNAME
+
+# header
+
+#   ---------------------------------------------
+#   mounting file systems
+#   ---------------------------------------------
+echo -n "* Mounting filesystems"
+mkdir -p /dev/pts /dev/shm
+mount -a
+mount / -o remount,noatime,rw
+status $? 1
+
+#   ---------------------------------------------
+#   MDEV Support
+#   ---------------------------------------------
+echo -n "* Creating devices"
+/sbin/mdev -s
+status $? 0
+
+#   ---------------------------------------------
+#   start loggers
+#   ---------------------------------------------
+echo -n "* Starting syslogd"
+/sbin/syslogd -C16
+status $? 0
+
+echo -n "* Starting klogd"
+/sbin/klogd
+status $? 0
+
+#   ---------------------------------------------
+#   inits the loopback device
+#   ---------------------------------------------
+ifconfig lo 127.0.0.1 up
+
+#   ---------------------------------------------
+#   inits the 'bnep' device and pand service
+#   ---------------------------------------------
+
+bluez_init
+
+bluez_connect
+
+#   ---------------------------------------------
+#   test of bnep networking
+#   ---------------------------------------------
+
+networkAvailable=`isNetworkAvailable`
+
+if ( $networkAvailable ); then
+
+    echo "* Starting network services -->"
+
+    startBluezNetworkServices
+
+    start_apps
+
+    exit 0
+
+fi
+
+# Disable console blanking
+printf "\e[9;0]" >/dev/tty0
