@@ -28,29 +28,70 @@ header () {
 #   ---------------------------------------------
 #   prints execution status.
 #
-#   @param {$1} : Execution status
-#   @param {$2} : Optional
-#          Continue (0) or Abort (1) on error
+#   @param {$1} Integer : Execution status, 
+#                         0 for [OK] or 1 for [ko]
+#   @param {$2} Integer : Optional, continue (0) 
+#                         or abort (1) on error
 #   ---------------------------------------------
 status () {
-
-
-    echo -ne '\033[36G'
+    
+    echo -ne '\033[36G'                # starts writing on position 36
 
     [ $1 -eq 0 ] && {
-            echo -ne '\033[0;32m'
+            echo -ne '\033[0;32m'      # sets text color back to green
             echo '[OK]'
         } || {
-            echo -ne '\033[0;31m'
-            echo -ne '\033[36G''[ko]'
-            echo
+            echo -ne '\033[0;31m'      # sets text color back to red
+            echo '[ko]'
             sleep 10
            [ ${2:0} -eq 1 ] && {
                echo "[ ABORT ]"
                exit 1
            }
         }
-    echo -ne '\033[0;37m'
+    
+    echo -ne '\033[0;37m'              # sets text color back to white
+}
+
+#   ---------------------------------------------
+#   writes a text `$1` with color `$2` and 
+#   attribute `$3`.
+#
+#   @param {$1} String : Your text
+#   @param {$2} Integer : Your color from 30..37 
+#   @param {$3} Integer : Yout attribute, 
+#                         0 from normal, 
+#                         1 for bold/bright
+#   ---------------------------------------------
+writeAttributedText () {
+
+    echo -ne '\033['$3';'$2'm'         # colorize text
+
+    echo -n "$1"
+
+}
+
+#   ---------------------------------------------
+#   writes a text `$1` with color `$2` and 
+#   attribute `$3` and, and sets the cursor 
+#   position back to the start so the text can
+#   be overridden by an other function.
+#
+#   @param {$1} String : Your text
+#   @param {$2} Integer : Your color from 30..37 
+#   @param {$3} Integer : Yout attribute, 
+#                         0 from normal, 
+#                         1 for bold/bright
+#   ---------------------------------------------
+writeAttributedTextWithFallback () {
+
+
+    echo -ne '\033[s'                  # save cursor's current position
+
+    writeAttributedText "$1" $2 $3
+
+    echo -ne '\033[u'                  # restore the cursor to the previous position
+
 }
 
 #   ---------------------------------------------
@@ -60,7 +101,7 @@ status () {
 #   ---------------------------------------------
 isNetworkAvailable () {
     ping -w 2 -c 1 "8.8.8.8" >/dev/null 2>&1
-    return $?
+    echo $?
 }
 
 #   ---------------------------------------------
@@ -78,22 +119,23 @@ mountNFS () {
 start_ntpd () {
     echo -n "  * Adjust clock "
 
-    echo -ne "\033[s"               # save cursor's current position
+    echo -ne "\033[s"                  # save cursor's current position
 
     touch /tmp/wip
 
-    /usr/local/bin/progress.sh &
+    /usr/local/bin/progress.sh &       # starts progress the points .........
 
     ntpd -nq -p 0.europe.pool.ntp.org >/dev/null 2>&1
+                                       # fetching by `ntpd` takes a while ...
 
-    rm /tmp/wip
+    rm /tmp/wip                        # stops the progress points
 
-    echo -ne "\033[u"       # restore the cursor to the previous position
-    echo -ne '\033[K'       # clear to end of line
+    echo -ne "\033[u"                  # restore the cursor to the previous position
+    echo -ne '\033[K'                  # clear to end of line
 
     status $? 0
     echo -n "    "
-    date
+    date                               # writes the system date
 }
 
 #   ---------------------------------------------
@@ -146,11 +188,11 @@ startBluezNetworkServices () {
 }
 
 #   ---------------------------------------------
-#   gets the interface addr
+#   gets the network interface addr
 #
-#   @param {$1} : e.g 'usb0' or 'bnep0'
+#   @param {$1} String : e.g 'usb0' or 'bnep0'
 #   ---------------------------------------------
-interfaceAddr () {
+get_InterfaceAddr () {
     echo -n $(echo `ip addr show $1 | tail -n 1` | cut -d' ' -f2)
 }
 
@@ -163,10 +205,10 @@ usb0_init () {
 
     echo -n "* Network usb0 "
 
-    ifconfig usb0 up
+    ifconfig usb0 down
 
     [ $perDHCP -eq 0 ] && {
-        ifconfig usb0 172.16.1.1 netmask 255.255.255.0
+        ifconfig usb0 172.16.1.1 netmask 255.255.255.0 up
         route add default gw 172.16.1.254 dev usb0
     } || {
         udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
@@ -174,7 +216,7 @@ usb0_init () {
 
     local res=$?
 
-    interfaceAddr "usb0"
+    get_InterfaceAddr "usb0"
 
     status $res 0
 
