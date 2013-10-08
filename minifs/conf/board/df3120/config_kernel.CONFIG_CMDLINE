@@ -1,8 +1,0 @@
-[production]
-CONFIG_CMDLINE="root=/dev/mmcblk0p1 quiet rootdelay=2 ro"
-
-[development]
-CONFIG_CMDLINE="root=/dev/mmcblk0p1 quiet rootdelay=2 ro console=ttySAC2,115200n8"
-
-
-
