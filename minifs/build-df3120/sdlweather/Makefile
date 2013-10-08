@@ -1,5 +1,5 @@
 TARGET=sdlweather
-OBJECTS=datatypes.o picframe.o window.o $(TARGET).o
+OBJECTS=datatypes.o picframe.o gpio.o window.o $(TARGET).o
 
 CFLAGS  := ${CFLAGS} -std=c99 -I../staging/usr/include
 
