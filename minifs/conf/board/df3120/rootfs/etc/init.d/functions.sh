@@ -28,13 +28,13 @@ header () {
 #   ---------------------------------------------
 #   prints execution status.
 #
-#   @param {$1} Integer : Execution status, 
+#   @param {$1} Integer : Execution status,
 #                         0 for [OK] or 1 for [ko]
-#   @param {$2} Integer : Optional, continue (0) 
+#   @param {$2} Integer : Optional, continue (0)
 #                         or abort (1) on error
 #   ---------------------------------------------
 status () {
-    
+
     echo -ne '\033[36G'                # starts writing on position 36
 
     [ $1 -eq 0 ] && {
@@ -49,18 +49,18 @@ status () {
                exit 1
            }
         }
-    
+
     echo -ne '\033[0;37m'              # sets text color back to white
 }
 
 #   ---------------------------------------------
-#   writes a text `$1` with color `$2` and 
+#   writes a text `$1` with color `$2` and
 #   attribute `$3`.
 #
 #   @param {$1} String : Your text
-#   @param {$2} Integer : Your color from 30..37 
-#   @param {$3} Integer : Yout attribute, 
-#                         0 from normal, 
+#   @param {$2} Integer : Your color from 30..37
+#   @param {$3} Integer : Yout attribute,
+#                         0 from normal,
 #                         1 for bold/bright
 #   ---------------------------------------------
 writeAttributedText () {
@@ -72,15 +72,15 @@ writeAttributedText () {
 }
 
 #   ---------------------------------------------
-#   writes a text `$1` with color `$2` and 
-#   attribute `$3` and, and sets the cursor 
+#   writes a text `$1` with color `$2` and
+#   attribute `$3` and, and sets the cursor
 #   position back to the start so the text can
 #   be overridden by an other function.
 #
 #   @param {$1} String : Your text
-#   @param {$2} Integer : Your color from 30..37 
-#   @param {$3} Integer : Yout attribute, 
-#                         0 from normal, 
+#   @param {$2} Integer : Your color from 30..37
+#   @param {$3} Integer : Yout attribute,
+#                         0 from normal,
 #                         1 for bold/bright
 #   ---------------------------------------------
 writeAttributedTextWithFallback () {
@@ -203,22 +203,29 @@ usb0_init () {
 
     local perDHCP=0
 
-    echo -n "* Network usb0 "
+    writeAttributedTextWithFallback "usb0" "32" "0"
 
     ifconfig usb0 down
 
     [ $perDHCP -eq 0 ] && {
-        ifconfig usb0 172.16.1.1 netmask 255.255.255.0 up
-        route add default gw 172.16.1.254 dev usb0
-    } || {
-        udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
-    }
+            ifconfig usb0 172.16.1.1 netmask 255.255.255.0 up
+            route add default gw 172.16.1.254 dev usb0
+        } || {
+            udhcpc -i usb0 -b -T 1 > /dev/null 2>&1
+        }
 
-    local res=$?
+    sleep 1
 
-    get_InterfaceAddr "usb0"
+    writeAttributedText "usb0" "32" "1"
 
-    status $res 0
+    local networkAvailable=$(isNetworkAvailable)
+
+    [ $networkAvailable -eq 0 ] && {
+            get_InterfaceAddr "usb0"
+            return 1
+        } || {
+            return 0
+        }
 
 }
 

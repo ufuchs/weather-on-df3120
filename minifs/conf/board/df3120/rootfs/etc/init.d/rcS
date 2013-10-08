@@ -1,17 +1,11 @@
 #!/bin/hush
-# vim: syntax=sh sw=4
-
 #   ---------------------------------------------
 #   Common settings
 #   ---------------------------------------------
-HOSTNAME=hp6341
+HOSTNAME=df3120
 VERSION=0.0.1
 
-# DF3120 Bluetooth MAC
 BT_ADDRESS="84:59:04:04:02:05"
-
-# bdaddr of piconet server
-BT_PARTNER="BC:20:A4:2B:C5:E3"
 
 NFS_SERVER="192.168.178.10"
 
@@ -21,7 +15,7 @@ NFS_EXPORT="/exports/df3120-rootfs"
 
 hostname $HOSTNAME
 
-# header
+header
 
 #   ---------------------------------------------
 #   mounting file systems
@@ -29,7 +23,6 @@ hostname $HOSTNAME
 echo -n "* Mounting filesystems"
 mkdir -p /dev/pts /dev/shm
 mount -a
-mount / -o remount,noatime,rw
 status $? 1
 
 #   ---------------------------------------------
@@ -38,6 +31,10 @@ status $? 1
 echo -n "* Creating devices"
 /sbin/mdev -s
 status $? 0
+
+mount / -o remount,rw
+
+#echo 2 >/proc/cpu/alignment
 
 #   ---------------------------------------------
 #   start loggers
@@ -56,30 +53,32 @@ status $? 0
 ifconfig lo 127.0.0.1 up
 
 #   ---------------------------------------------
-#   inits the 'bnep' device and pand service
+#   inits the network devices
+#   ---------------------------------------------
+echo -n "* Network "
+
+usb0_init
+
+connected=$?
+
+#   ---------------------------------------------
+#   network services
 #   ---------------------------------------------
 
-bluez_init
+[ ! $connected -eq 0 ] && {
+  echo "* Starting network services -->"
+} || {
+  exit
+}
 
-bluez_connect
+case $connected in
+1) startUsbNetworkServices
+   start_apps
+   ;;
+2)
+   ;;
 
-#   ---------------------------------------------
-#   test of bnep networking
-#   ---------------------------------------------
-
-networkAvailable=`isNetworkAvailable`
-
-if ( $networkAvailable ); then
-
-    echo "* Starting network services -->"
-
-    startBluezNetworkServices
-
-    start_apps
-
-    exit 0
-
-fi
+esac
 
 # Disable console blanking
 printf "\e[9;0]" >/dev/tty0
