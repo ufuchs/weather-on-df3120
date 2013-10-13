@@ -28,13 +28,13 @@ header () {
 #   ---------------------------------------------
 #   prints execution status.
 #
-#   @param {$1} Integer : Execution status, 
+#   @param {$1} Integer : Execution status,
 #                         0 for [OK] or 1 for [ko]
-#   @param {$2} Integer : Optional, continue (0) 
+#   @param {$2} Integer : Optional, continue (0)
 #                         or abort (1) on error
 #   ---------------------------------------------
 status () {
-    
+
     echo -ne '\033[36G'                # starts writing on position 36
 
     [ $1 -eq 0 ] && {
@@ -49,18 +49,18 @@ status () {
                exit 1
            }
         }
-    
+
     echo -ne '\033[0;37m'              # sets text color back to white
 }
 
 #   ---------------------------------------------
-#   writes a text `$1` with color `$2` and 
+#   writes a text `$1` with color `$2` and
 #   attribute `$3`.
 #
 #   @param {$1} String : Your text
-#   @param {$2} Integer : Your color from 30..37 
-#   @param {$3} Integer : Yout attribute, 
-#                         0 from normal, 
+#   @param {$2} Integer : Your color from 30..37
+#   @param {$3} Integer : Yout attribute,
+#                         0 from normal,
 #                         1 for bold/bright
 #   ---------------------------------------------
 writeAttributedText () {
@@ -72,15 +72,15 @@ writeAttributedText () {
 }
 
 #   ---------------------------------------------
-#   writes a text `$1` with color `$2` and 
-#   attribute `$3` and, and sets the cursor 
+#   writes a text `$1` with color `$2` and
+#   attribute `$3` and, and sets the cursor
 #   position back to the start so the text can
 #   be overridden by an other function.
 #
 #   @param {$1} String : Your text
-#   @param {$2} Integer : Your color from 30..37 
-#   @param {$3} Integer : Yout attribute, 
-#                         0 from normal, 
+#   @param {$2} Integer : Your color from 30..37
+#   @param {$3} Integer : Yout attribute,
+#                         0 from normal,
 #                         1 for bold/bright
 #   ---------------------------------------------
 writeAttributedTextWithFallback () {
@@ -297,7 +297,7 @@ bluez_connect () {
     # clear to end of line
     echo -ne '\033[K'
 
-    interfaceAddr "bnep0"
+    get_InterfaceAddr "bnep0"
 
     status $result 0
 

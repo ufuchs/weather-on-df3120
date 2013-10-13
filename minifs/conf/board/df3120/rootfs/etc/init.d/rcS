@@ -69,7 +69,7 @@ bluez_connect
 
 networkAvailable=`isNetworkAvailable`
 
-if ( $networkAvailable ); then
+if [ "$networkAvailable" -eq "0" ]; then
 
     echo "* Starting network services -->"
 
