@@ -277,12 +277,12 @@ void weather_setup(int num) {
 //
 void app_create() {
 
-	char *leftPath = "/usr/share/data/glyphicons_210_left_arrow.png";
+	char *leftPath = "/usr/share/icons/glyphicons_210_left_arrow.png";
 	char *leftSelected =
-			"/usr/share/data/glyphicons_210_left_arrow_selected.png";
-	char *rightPath = "/usr/share/data/glyphicons_211_right_arrow.png";
+			"/usr/share/icons/glyphicons_210_left_arrow_selected.png";
+	char *rightPath = "/usr/share/icons/glyphicons_211_right_arrow.png";
 	char *rightSelected =
-			"/usr/share/data/glyphicons_211_right_arrow_selected.png";
+			"/usr/share/icons/glyphicons_211_right_arrow_selected.png";
 
 	picframe_init();
 
