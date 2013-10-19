@@ -1,11 +1,11 @@
 weather-on-df3120
 =================
 
-Use the **Parrot DF3120 320x240 Bluetooth/SD/USB Picture Frame** as weather display.
+Using the **Parrot DF3120 320x240 Bluetooth/SD/USB Picture Frame** as weather display.
 
 Works now with my Galaxy S3 per Bluetooth.
 
-And what you will get!
+And, what you will get!
 
 ![20131015_222120](https://f.cloud.github.com/assets/614954/1337715/8c054232-35da-11e3-87bb-da544eb289a8.jpg)
 
