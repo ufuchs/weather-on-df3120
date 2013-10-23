@@ -1,1 +1,0 @@
-ACTION=="add", ATTRS{idVendor}=="1d6b", ATTRS{idProduct}=="0102", NAME="usb%n", RUN+="/etc/udev/scripts/parrot-df3120.sh usb%n"
