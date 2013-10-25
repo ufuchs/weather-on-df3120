@@ -5,7 +5,7 @@ Using the **Parrot DF3120 320x240 Bluetooth/SD/USB Picture Frame** as weather di
 
 Works now with my Galaxy S3 per Bluetooth.
 
-And, what you will get!
+And... what you will get!
 
 ![20131018_121421-rot](https://f.cloud.github.com/assets/614954/1368518/a9c752b6-39a8-11e3-8552-6a03bd2c5ff9.jpg)
 
