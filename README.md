@@ -18,6 +18,6 @@ His [framework](https://github.com/atiti/df3120-sdl-framework) enables me to car
 So and the smallest part of inspiration comes from an other project of mine :
 [weather-on-kindle4nt](https://github.com/ufuchs/weather-on-kindle4nt/releases)
 
-On the DF3120 the four day forecast shown on the Kindel is realized with two buttons at the rear.
+On the DF3120 the four day forecast shown on the Kindle is realized with the left and the right button at the rear.
 So it's possible to navigate between the 4 daily forecasts.
 
