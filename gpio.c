@@ -10,47 +10,123 @@
 #include <fcntl.h>
 #include "common.h"
 
+static const int BTN_LEFT = 162;
+static const int BTN_MIDDLE = 163;
+static const int BTN_RIGHT = 164;
+
+enum gpio_dir { in, out } gpio_dirs;
+
+
+static const char GPIO_EDGE_NONE     = "none";
+static const char GPIO_EDGE_FALLING  = "falling";
+static const char GPIO_EDGE_RISING   = "rising";
+static const char GPIO_EDGE_BOTH     = "both";
+
+static const char GPIO_DIRECTION_IN  = "in";
+static const char GPIO_DIRECTION_OUT = "out";
+
+/**
+ *
+ */
 static int gpio_export(int ex, int pin) {
+
 	char buff[50];
 	FILE *fp;
 
-	if (ex) fp = fopen("/sys/class/gpio/export", "ab");
-	else fp = fopen("/sys/class/gpio/unexport", "ab");
+	if (ex) {
+		fp = fopen("/sys/class/gpio/export", "ab");
+	} else {
+		fp = fopen("/sys/class/gpio/unexport", "ab");
+	}
 
-	if (!fp) return -1;
+	if (!fp) {
+		return -1;
+	}
+
 	sprintf(buff, "%d", pin);
+
 	rewind(fp);
+
 	fwrite(&buff, sizeof(char), strlen(buff), fp);
+
 	fclose(fp);
+
 	return 0;
+
 }
 
+// enum edge { none=0, falling, rising, both } edges;
+
 int gpio_setcfg(int gpio, int dir, int edge) {
+
 	char buff[50];
 	int fp;
 
-        sprintf(buff, "/sys/class/gpio/gpio%d/edge", gpio);
-        fp = open(buff, O_WRONLY);
+	//
 
-        if (!fp) {
-                debug_printf("failed to open %s\n", buff);
-                return -1;
-        }
-        if (edge == 0) write(fp, "none", 4);
-        else if (edge == 1) write(fp, "falling", 4);
-        else if (edge == 2) write(fp, "rising", 4);
-	else if (edge == 3) write(fp, "both", 4);
-	close(fp);
-
-	sprintf(buff, "/sys/class/gpio/gpio%d/direction", gpio);
+	sprintf(buff, "/sys/class/gpio/gpio%d/edge", gpio);
 	fp = open(buff, O_WRONLY);
+
 	if (!fp) {
 		debug_printf("failed to open %s\n", buff);
 		return -1;
 	}
-	if (dir) write(fp, "out", 3);
-	else write(fp, "in", 2);
+
+	switch (edge) {
+	case 0:
+		write(fp, GPIO_EDGE_NONE, strlen(GPIO_EDGE_NONE));
+		break;
+	case 1:
+		write(fp, GPIO_EDGE_FALLING, strlen(GPIO_EDGE_FALLING));
+		break;
+	case 2:
+		write(fp, GPIO_EDGE_RISING, strlen(GPIO_EDGE_RISING));
+		break;
+	case 3:
+		write(fp, GPIO_EDGE_BOTH, strlen(GPIO_EDGE_BOTH));
+		break;
+	}
+
+	/*
+	if (edge == 0)
+		write(fp, "none", 4);
+	else if (edge == 1)
+		write(fp, "falling", 7);
+	else if (edge == 2)
+		write(fp, "rising", 6);
+	else if (edge == 3)
+		write(fp, "both", 4);
+	*/
 	close(fp);
+
+	//
+
+	sprintf(buff, "/sys/class/gpio/gpio%d/direction", gpio);
+	fp = open(buff, O_WRONLY);
+
+	if (!fp) {
+		debug_printf("failed to open %s\n", buff);
+		return -1;
+	}
+
+	switch (dir) {
+	case 0 : write(fp, GPIO_DIRECTION_OUT, strlen(GPIO_DIRECTION_OUT)); break;
+	case 1 : write(fp, GPIO_DIRECTION_IN, strlen(GPIO_DIRECTION_IN)); break;
+	}
+
+	//
+
+	/*
+	if (dir)
+		write(fp, "out", 3);
+	else
+		write(fp, "in", 2);
+	 */
+	//
+
+	close(fp);
+
+	//
 
 	return 0;
 }
@@ -70,8 +146,10 @@ void gpio_init() {
 	/* BUG: somehow the edge detect doesnt work first */
 	system("echo falling > /sys/class/gpio/gpio162/edge");
 	system("echo both > /sys/class/gpio/gpio162/edge");
+
 	system("echo falling > /sys/class/gpio/gpio163/edge");
 	system("echo both > /sys/class/gpio/gpio163/edge");
+
 	system("echo falling > /sys/class/gpio/gpio164/edge");
 	system("echo both > /sys/class/gpio/gpio164/edge");
 
@@ -102,13 +180,19 @@ int gpio_handle_events(SDL_Event *event) {
 	char buff[10];
 	int rs, i;
 
+	// clear
 	memset((void*)gpio_pollfd, 0, sizeof(gpio_pollfd));
+
 	gpio_pollfd[0].fd = gpio_fd[0];
 	gpio_pollfd[0].events = POLLPRI;
+
 	gpio_pollfd[1].fd = gpio_fd[1];
 	gpio_pollfd[1].events = POLLPRI;
+
 	gpio_pollfd[2].fd = gpio_fd[2];
 	gpio_pollfd[2].events = POLLPRI;
+
+	// !clear
 
 	rs = poll(gpio_pollfd, NUM_GPIO_KEYS, 50);
 
