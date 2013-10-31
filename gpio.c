@@ -145,7 +145,7 @@ void gpio_init() {
 
 	/* BUG: somehow the edge detect doesnt work first */
 	system("echo falling > /sys/class/gpio/gpio162/edge");
-	system("echo both > /sys/class/gpio/gpio162/edge");
+	system("echo both > /sys/class/gpio/gpio162/edge");		// wieso beides?
 
 	system("echo falling > /sys/class/gpio/gpio163/edge");
 	system("echo both > /sys/class/gpio/gpio163/edge");
