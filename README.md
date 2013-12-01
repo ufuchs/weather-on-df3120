@@ -9,10 +9,11 @@ And, what you will get!
 
 ![20131018_121421-rot](https://f.cloud.github.com/assets/614954/1368518/a9c752b6-39a8-11e3-8552-6a03bd2c5ff9.jpg)
 
-This project was mostly inspired by [repurpose_linux](https://sites.google.com/site/repurposelinux/df3120).
-This guys have done a really excellent work. Many thanks again!
+This project was mostly inspired by [repurpose_linux](https://sites.google.com/site/repurposelinux/df3120).  
+This guys have done a really excellent work.  
+Many thanks again!
 
-And even many thanks to [Attila Sukosd](https://github.com/atiti)!
+And even many thanks to [Attila Sukosd](https://github.com/atiti)!  
 His [framework](https://github.com/atiti/df3120-sdl-framework) enables me to carry out my ideas.
 
 So and the smallest part of inspiration comes from an other project of mine :
